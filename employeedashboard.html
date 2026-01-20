@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Dashboard - Gracewell NEXUS</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #1e3a5f;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .navbar .logo {
+      font-weight: bold;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      font-size: 20px;
+    }
+
+    .navbar-right {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .logout-btn {
+      background-color: #f4c10f;
+      color: #000;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .logout-btn:hover {
+      background-color: #ffda2c;
+    }
+
+    .container {
+      padding: 30px 40px;
+    }
+
+    .welcome-header {
+      margin-bottom: 30px;
+    }
+
+    .welcome-header h1 {
+      font-size: 28px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 5px 0;
+    }
+
+    .section {
+      background-color: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Employee Profile Section */
+    .profile-content {
+      display: grid;
+      grid-template-columns: 200px 1fr 150px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .profile-photo {
+      text-align: center;
+    }
+
+    .profile-photo img {
+      width: 180px;
+      height: 180px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .profile-photo img:hover {
+      opacity: 0.8;
+    }
+
+    .profile-photo p {
+      font-size: 12px;
+      color: #999;
+      margin: 0;
+    }
+
+    .profile-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .detail-item {
+      font-size: 14px;
+    }
+
+    .detail-item strong {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 3px;
+    }
+
+    .profile-qr {
+      text-align: center;
+    }
+
+    .qr-code {
+      width: 140px;
+      height: 140px;
+      background-color: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .employee-id {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    .profile-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background-color: #ffda2c;
+    }
+
+    .btn-secondary {
+      background-color: #4a7bc9;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background-color: #3a6bb0;
+    }
+
+    .btn-success {
+      background-color: #00c853;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #00b84a;
+    }
+
+    .btn-warning {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
+    .btn-danger {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #d32f2f;
+    }
+
+    /* Attendance Section */
+    .attendance-header {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-select {
+      padding: 8px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+      background-color: #f9f9f9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table th {
+      background-color: #f5f5f5;
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #666;
+      font-size: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 14px;
+    }
+
+    table tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-present {
+      background-color: #e8f5e9;
+      color: #00c853;
+    }
+
+    .status-absent {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+
+    .status-leave {
+      background-color: #e3f2fd;
+      color: #1976d2;
+    }
+
+    .status-pending {
+      background-color: #fff3e0;
+      color: #f57c00;
+    }
+
+    .status-released {
+      background-color: #fce4ec;
+      color: #c2185b;
+    }
+
+    .status-claimed {
+      background-color: #e1f5fe;
+      color: #0277bd;
+    }
+
+    .salary-section table {
+      margin-top: 0;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1500;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(-30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .modal-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .modal-close:hover {
+      color: #333;
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #4a7bc9;
+      box-shadow: 0 0 0 3px rgba(74, 123, 201, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .modal-footer {
+      padding: 20px 25px;
+      border-top: 1px solid #e0e0e0;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn-cancel {
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .modal-btn-cancel:hover {
+      background-color: #e0e0e0;
+    }
+
+    .modal-btn-submit {
+      background-color: #4a7bc9;
+      color: white;
+    }
+
+    .modal-btn-submit:hover {
+      background-color: #3a6bb0;
+    }
+
+    /* Receipt Modal */
+    .receipt-modal {
+      max-width: 400px;
+    }
+
+    .receipt-content {
+      text-align: center;
+      padding: 30px 25px;
+    }
+
+    .receipt-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 25px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .receipt-section {
+      text-align: left;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .receipt-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .receipt-row strong {
+      color: #666;
+      font-weight: 600;
+    }
+
+    .receipt-row .amount {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .receipt-row.highlight {
+      font-size: 16px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+
+    .receipt-row.highlight strong {
+      font-size: 18px;
+    }
+
+    .receipt-btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #4a7bc9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .receipt-btn:hover {
+      background-color: #3a6bb0;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-buttons .btn {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">
+      <span class="logo-icon">✦</span>
+      Gracewell NEXUS
+    </div>
+    <div class="navbar-right">
+      <button class="logout-btn" onclick="logout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="welcome-header">
+      <h1>Welcome, Roberta!</h1>
+    </div>
+
+    <!-- Employee Profile Section -->
+    <div class="section">
+      <div class="section-title">👤 Employee Profile</div>
+      <div class="profile-content">
+        <div class="profile-photo">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%234a7bc9' width='180' height='180'/%3E%3Ccircle cx='90' cy='60' r='35' fill='white'/%3E%3Cpath d='M30 160 Q30 100 90 100 Q150 100 150 160' fill='white'/%3E%3C/svg%3E" alt="Profile" onclick="enlargePhoto()">
+          <p>Click to Enlarge</p>
+          <div class="profile-buttons">
+            <button class="btn btn-primary">Edit Profile</button>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <div class="detail-item">
+            <strong>First Name</strong>
+            Roberta
+          </div>
+          <div class="detail-item">
+            <strong>Middle Name</strong>
+            Cortez
+          </div>
+          <div class="detail-item">
+            <strong>Last Name</strong>
+            Gonzales
+          </div>
+          <div class="detail-item">
+            <strong>Employee ID</strong>
+            EMP001
+          </div>
+          <div class="detail-item">
+            <strong>Email</strong>
+            rrc.gonzales@trucking.com
+          </div>
+          <div class="detail-item">
+            <strong>Contact No</strong>
+            09162345690
+          </div>
+          <div class="detail-item">
+            <strong>Position</strong>
+            Truck Driver
+          </div>
+          <div class="detail-item">
+            <strong>Department</strong>
+            Operations
+          </div>
+        </div>
+
+        <div class="profile-qr">
+          <div class="qr-code">QR Code</div>
+          <div class="employee-id">Employee ID: EMP001<br><small>Scan this code for quick identification</small></div>
+          <button class="btn btn-secondary">Click to Enlarge</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Attendance Report Section -->
+    <div class="section">
+      <div class="section-title">📋 My Attendance Report</div>
+      <div class="attendance-header">
+        <select class="filter-select">
+          <option>Last Week</option>
+          <option>This Week</option>
+          <option>Last Month</option>
+          <option>This Month</option>
+        </select>
+        <button class="btn btn-warning" onclick="openNotifyAbsenceModal()">Notify Absence</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Oct 27, 2025 — 08:00 AM</td>
+            <td>Oct 30, 2025 — 18:00 PM</td>
+            <td><span class="status-badge status-present">Present</span></td>
+            <td><button class="btn btn-primary" onclick="requestCorrection()">Request Correction</button></td>
+          </tr>
+          <tr>
+            <td>Oct 22, 2025 — 08:15 AM</td>
+            <td>Oct 22, 2025 — 18:30 PM</td>
+            <td><span class="status-badge status-present">Present</span></td>
+            <td><button class="btn btn-primary" onclick="requestCorrection()">Request Correction</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- My Salary Report Section -->
+    <div class="section salary-section">
+      <div class="section-title">💰 My Salary Report</div>
+      <div class="attendance-header">
+        <select class="filter-select">
+          <option>Last Week</option>
+          <option>This Week</option>
+          <option>Last Month</option>
+          <option>This Month</option>
+        </select>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Salary</th>
+            <th>Status</th>
+            <th>Release Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>October 1-15, 2025</td>
+            <td>₱ 23,000</td>
+            <td><span class="status-badge status-pending">Pending</span></td>
+            <td>-</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-primary" onclick="claimSalary(this)">Claim</button>
+                <button class="btn btn-secondary" onclick="viewReceipt()">View Receipt</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>September 16-30, 2025</td>
+            <td>₱ 46,000</td>
+            <td><span class="status-badge status-released">Released</span></td>
+            <td>10/10/2025</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-success" onclick="claimSalary(this)">Claim</button>
+                <button class="btn btn-secondary" onclick="viewReceipt()">View Receipt</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>September 01-15, 2025</td>
+            <td>₱ 45,000</td>
+            <td><span class="status-badge status-claimed">Claimed</span></td>
+            <td>09/25/2025</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn btn-success" disabled>Claimed</button>
+                <button class="btn btn-secondary" onclick="viewReceipt()">View Receipt</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Notify Absence Modal -->
+  <div class="modal-overlay" id="notifyAbsenceModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Notify Absence</h2>
+        <button class="modal-close" onclick="closeModal('notifyAbsenceModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Date of Absence *</label>
+          <input type="date" id="absenceDate" required>
+        </div>
+        <div class="form-group">
+          <label>Reason for Absence *</label>
+          <textarea id="absenceReason" placeholder="Please provide a reason for your absence..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Attach Proof (Optional)</label>
+          <input type="file" id="absenceProof">
+          <small>You can attach a medical certificate or other proof if available</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn modal-btn-cancel" onclick="closeModal('notifyAbsenceModal')">Cancel</button>
+        <button class="modal-btn modal-btn-submit" onclick="submitAbsenceNotification()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal receipt-modal">
+      <div class="modal-header">
+        <h2>Salary Receipt</h2>
+        <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
+      </div>
+      <div class="modal-body receipt-content">
+        <div class="receipt-header">
+          <span>🏢</span>
+          <span>Gracewell NEXUS</span>
+        </div>
+
+        <div class="receipt-section">
+          <div class="receipt-row">
+            <strong>Period:</strong>
+            <span id="receiptPeriod">October 1-15, 2025</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Employee Name:</strong>
+            <span>Roberta Rubilyn Cortez Gonzales</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Employee ID:</strong>
+            <span>EMP001</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Position:</strong>
+            <span>Truck Driver</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Department:</strong>
+            <span>Operations</span>
+          </div>
+        </div>
+
+        <div class="receipt-section">
+          <div class="receipt-row highlight">
+            <strong>Gross Salary:</strong>
+            <span class="amount" id="receiptGross">₱ 46,000</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Deductions:</strong>
+            <span>₱ 0</span>
+          </div>
+          <div class="receipt-row highlight">
+            <strong>Net Salary:</strong>
+            <span class="amount" id="receiptNet">₱ 46,000</span>
+          </div>
+        </div>
+
+        <div class="receipt-section">
+          <div class="receipt-row">
+            <strong>Release Date:</strong>
+            <span id="receiptReleaseDate">10/10/2025</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Claimed Date:</strong>
+            <span id="receiptClaimedDate">-</span>
+          </div>
+          <div class="receipt-row">
+            <strong>Status:</strong>
+            <span id="receiptStatus">Claimed</span>
+          </div>
+        </div>
+
+        <button class="receipt-btn" onclick="downloadPDF()">Download PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openNotifyAbsenceModal() {
+      document.getElementById('notifyAbsenceModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function submitAbsenceNotification() {
+      const date = document.getElementById('absenceDate').value;
+      const reason = document.getElementById('absenceReason').value;
+
+      if (!date || !reason) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      alert('✓ Absence notification submitted successfully.\nThe admin has been notified of your absence on ' + date);
+      closeModal('notifyAbsenceModal');
+      document.getElementById('absenceDate').value = '';
+      document.getElementById('absenceReason').value = '';
+    }
+
+    function requestCorrection() {
+      alert('✓ Correction request submitted.\nThe admin will review your request and notify you shortly.');
+    }
+
+    function claimSalary(btn) {
+      const row = btn.closest('tr');
+      const statusCell = row.querySelector('.status-badge');
+      
+      statusCell.classList.remove('status-pending', 'status-released');
+      statusCell.classList.add('status-claimed');
+      statusCell.textContent = 'Claimed';
+
+      btn.textContent = 'Claimed';
+      btn.classList.add('btn-success');
+      btn.disabled = true;
+
+      alert('✓ Salary claimed successfully.\nThe admin has been notified that you have confirmed receipt of your payment.');
+    }
+
+    function viewReceipt() {
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function downloadPDF() {
+      alert('📥 Downloading receipt as PDF...');
+    }
+
+    function logout() {
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.clear();
+        window.location.href = 'loginpage.html';
+      }
+    }
+
+    function enlargePhoto() {
+      alert('📷 Opening full size photo...');
+    }
+
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+          this.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

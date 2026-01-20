@@ -65,10 +65,23 @@
       gap: 6px;
       cursor: pointer;
       font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
     }
 
     .nav-links .employee-link:hover {
-      opacity: 0.8;
+      background-color: rgba(244, 193, 15, 0.1);
+      opacity: 1;
+    }
+
+    .dropdown.active .employee-link {
+      background-color: rgba(244, 193, 15, 0.2);
+    }
+
+    .nav-links .employee-link:hover span,
+    .dropdown.active .employee-link span {
+      display: none;
     }
 
     .dropdown {
@@ -79,14 +92,18 @@
     .dropdown-content {
       display: none;
       position: absolute;
-      right: 0;
+      left: 0;
       background-color: white;
       min-width: 220px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       border-radius: 8px;
-      z-index: 1;
-      top: 50px;
+      z-index: 1000;
+      top: 45px;
       padding: 8px;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: block;
     }
 
     .dropdown-content a {
@@ -126,6 +143,7 @@
       gap: 10px;
       cursor: pointer;
       margin-left: 30px;
+      position: relative;
     }
 
     .profile-avatar {
@@ -150,6 +168,41 @@
       align-items: center;
       gap: 4px;
       white-space: nowrap;
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 50px;
+      padding: 8px;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+    }
+
+    .profile-dropdown a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 13px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-dropdown a:hover {
+      background-color: #f4c10f;
+      color: #000;
     }
 
     .container {
@@ -360,13 +413,16 @@
         <div class="dropdown-content">
           <a href="employee.html">Attendance Management</a>
           <a href="truckingcompany.html">Employee Salary Tracker</a>
-          <a href="employeerecord.html">Employee Records</a>
-        </div>
+          <a href="employeerecord.html">Employee Records</a>          <a href="usermanagement.html">User Management</a>        </div>
       </div>
     </div>
     <div class="profile">
       <div class="profile-avatar">GC</div>
       <span class="profile-name">Grace Co <span>▼</span></span>
+      <div class="profile-dropdown">
+        <a href="profilesetting.html">👤 Profile</a>
+        <a href="loginpage.html">🚪 Log Out</a>
+      </div>
     </div>
   </div>
 
@@ -491,5 +547,73 @@
       </table>
     </div>
   </div>
+
+  <script>
+    // Profile dropdown menu
+    const profileName = document.querySelector('.profile-name');
+    const profileDropdown = document.querySelector('.profile-dropdown');
+
+    if (profileName && profileDropdown) {
+      profileName.addEventListener('click', function(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!profileDropdown.contains(e.target) && !profileName.contains(e.target)) {
+          profileDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    // Employee dropdown
+    const employeeLink = document.querySelector('.employee-link');
+    const dropdown = document.querySelector('.dropdown');
+
+    if (employeeLink && dropdown) {
+      employeeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    // Export button functionality
+    const exportBtn = document.querySelector('.export-btn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', function() {
+        alert('Exporting employee data as CSV...');
+      });
+    }
+
+    // Search functionality
+    const searchInput = document.querySelector('.search-box input');
+    if (searchInput) {
+      searchInput.addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          if (text.includes(filter)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  </script>
 </body>
 </html>

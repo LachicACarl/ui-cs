@@ -431,6 +431,10 @@
           <p><strong>Date:</strong> <span id="infoDate">Tuesday, January 20, 2026</span></p>
           <p><strong>Time-In:</strong> <span id="infoTime">02:55:05 AM</span></p>
         </div>
+        <div class="modal-buttons">
+          <button class="btn btn-primary" onclick="goDashboard()">Go to Dashboard</button>
+          <button class="btn btn-secondary" onclick="newScan()">New Scan</button>
+        </div>
       </div>
     </div>
   </div>
@@ -541,8 +545,21 @@
       document.getElementById('instruction').textContent = 'Click to start scanning';
     }
 
+    function goDashboard() {
+      // Check if user is admin
+      const isAdmin = localStorage.getItem('isAdmin');
+      if (isAdmin === 'true') {
+        window.location.href = 'admindashboard.html';
+      } else {
+        window.location.href = 'dashboard.html';
+      }
+    }
+
     function logout() {
       alert('Logging out...');
+      localStorage.removeItem('employeeId');
+      localStorage.removeItem('employeeName');
+      localStorage.removeItem('isAdmin');
       window.location.href = 'loginpage.html';
     }
   </script>

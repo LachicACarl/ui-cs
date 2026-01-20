@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gracewell NEXUS - View Employee Record</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #1e3a5f;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .navbar .logo {
+      font-weight: bold;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      font-size: 20px;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .nav-links .dashboard-btn {
+      background-color: #f4c10f;
+      color: #000;
+      padding: 8px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .nav-links .dashboard-btn:hover {
+      background-color: #ffda2c;
+    }
+
+    .nav-links .employee-link {
+      color: #f4c10f;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-links .employee-link:hover {
+      background-color: rgba(244, 193, 15, 0.1);
+      opacity: 1;
+    }
+
+    .dropdown.active .employee-link {
+      background-color: rgba(244, 193, 15, 0.2);
+    }
+
+    .nav-links .employee-link:hover span,
+    .dropdown.active .employee-link span {
+      display: none;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      left: 0;
+      background-color: white;
+      min-width: 220px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 45px;
+      padding: 8px;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 14px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-content a:first-child {
+      background-color: #fff3e0;
+      color: #f57c00;
+      border: 1px solid #f4c10f;
+      margin-top: 0;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f4c10f;
+      color: #000;
+      border-color: #f4c10f;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .navbar .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-left: 30px;
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 32px;
+      height: 32px;
+      background-color: #4a90e2;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .profile-name {
+      color: white;
+      font-weight: 500;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 50px;
+      padding: 8px;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+    }
+
+    .profile-dropdown a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 13px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-dropdown a:hover {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
+    .container {
+      padding: 30px 40px;
+    }
+
+    .breadcrumb {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .breadcrumb a {
+      color: #4a7bc9;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb .separator {
+      margin: 0 8px;
+      color: #999;
+    }
+
+    .breadcrumb .active {
+      color: #f4c10f;
+      font-weight: 600;
+    }
+
+    .employee-view-card {
+      background-color: #ffffff;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border: 1px solid #e0e0e0;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .employee-photo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .photo-circle {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #87ceeb 0%, #4a90e2 100%);
+      border-radius: 50%;
+    }
+
+    .employee-details-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .employee-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 30px;
+      margin-bottom: 30px;
+    }
+
+    .detail-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-label {
+      font-size: 12px;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .detail-value {
+      padding: 12px 14px;
+      background-color: #b3d9ff;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .hired-date-section {
+      background-color: #b3d9ff;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .hired-date-section strong {
+      font-weight: 600;
+    }
+
+    .watermark {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      opacity: 0.08;
+      font-size: 150px;
+      pointer-events: none;
+    }
+
+    .back-button {
+      display: inline-block;
+      background-color: #f4c10f;
+      color: #000;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+
+    .back-button:hover {
+      background-color: #ffda2c;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo" onclick="window.location.href='dashboard.html'">
+      <span class="logo-icon">✦</span>
+      Gracewell NEXUS
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="dashboard-btn">Dashboard</a>
+      <div class="dropdown">
+        <div class="employee-link">Employee <span>▼</span></div>
+        <div class="dropdown-content">
+          <a href="attendancemangement.html">Attendance Management</a>
+          <a href="truckingcompany.html">Employee Salary Tracker</a>
+          <a href="employeerecord.html">Employee Records</a>
+          <a href="usermanagement.html">User Management</a>
+        </div>
+      </div>
+    </div>
+    <div class="profile">
+      <div class="profile-avatar">GC</div>
+      <span class="profile-name">Grace Co <span>▼</span></span>
+      <div class="profile-dropdown">
+        <a href="profilesetting.html">👤 Profile</a>
+        <a href="loginpage.html">🚪 Log Out</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <button class="back-button" onclick="window.location.href='employeerecord.html'">← Back</button>
+    
+    <div class="breadcrumb">
+      <a onclick="window.location.href='employeerecord.html'">Employee</a>
+      <span class="separator">›</span>
+      <a onclick="window.location.href='employeerecord.html'">Employee Records</a>
+      <span class="separator">›</span>
+      <span class="active">View Employee Record</span>
+    </div>
+
+    <div class="employee-view-card">
+      <div class="employee-photo-section">
+        <div class="photo-circle"></div>
+      </div>
+      
+      <div class="employee-details-section">
+        <div class="employee-details">
+          <div class="detail-field">
+            <label class="detail-label">Name</label>
+            <div class="detail-value" id="employeeName">Robert Johnson</div>
+          </div>
+          <div class="detail-field">
+            <label class="detail-label">Department</label>
+            <div class="detail-value" id="employeeDepartment">Operations</div>
+          </div>
+          <div class="detail-field">
+            <label class="detail-label">ID Number</label>
+            <div class="detail-value" id="employeeId">EMP001</div>
+          </div>
+          <div class="detail-field">
+            <label class="detail-label">Email</label>
+            <div class="detail-value" id="employeeEmail">robert.j@trucking.com</div>
+          </div>
+          <div class="detail-field">
+            <label class="detail-label">Position</label>
+            <div class="detail-value" id="employeePosition">Truck Driver</div>
+          </div>
+          <div class="detail-field">
+            <label class="detail-label">Contact No.</label>
+            <div class="detail-value" id="employeeContact">555-0101</div>
+          </div>
+        </div>
+
+        <div class="hired-date-section">
+          <strong>📅 Hired on January 15, 2022</strong>
+        </div>
+      </div>
+
+      <div class="watermark">✦</div>
+    </div>
+  </div>
+
+  <script>
+    // Profile dropdown menu
+    const profileName = document.querySelector('.profile-name');
+    const profileDropdown = document.querySelector('.profile-dropdown');
+
+    if (profileName && profileDropdown) {
+      profileName.addEventListener('click', function(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!profileDropdown.contains(e.target) && !profileName.contains(e.target)) {
+          profileDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    // Employee dropdown
+    const employeeLink = document.querySelector('.employee-link');
+    const dropdown = document.querySelector('.dropdown');
+
+    if (employeeLink && dropdown) {
+      employeeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    // Load employee data from localStorage
+    window.addEventListener('load', function() {
+      const employeeData = JSON.parse(localStorage.getItem('viewEmployeeData'));
+      
+      if (employeeData) {
+        document.getElementById('employeeName').textContent = employeeData.name || 'Robert Johnson';
+        document.getElementById('employeeId').textContent = employeeData.id || 'EMP001';
+        document.getElementById('employeePosition').textContent = employeeData.position || 'Truck Driver';
+        document.getElementById('employeeDepartment').textContent = employeeData.department || 'Operations';
+        document.getElementById('employeeEmail').textContent = employeeData.email || 'robert.j@trucking.com';
+        document.getElementById('employeeContact').textContent = employeeData.contact || '555-0101';
+      }
+    });
+  </script>
+</body>
+</html>

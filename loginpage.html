@@ -80,17 +80,30 @@
   </div>
 
   <script>
+    // Admin employee IDs
+    const adminIds = ['A001', 'A002', 'A003'];
+
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const employeeId = document.getElementById('employeeId').value;
+      const employeeId = document.getElementById('employeeId').value.trim();
       const password = document.getElementById('password').value;
       
       // Basic validation (replace with actual authentication)
       if (employeeId && password) {
-        // Store employee info and redirect to face detection
+        // Store employee info
         localStorage.setItem('employeeId', employeeId);
         localStorage.setItem('employeeName', employeeId); // In production, fetch actual name
-        window.location.href = 'facedetection.html';
+
+        // Check if employee is an admin
+        if (adminIds.includes(employeeId)) {
+          localStorage.setItem('isAdmin', 'true');
+          // Navigate to admin dashboard
+          window.location.href = 'admindashboard.html';
+        } else {
+          localStorage.setItem('isAdmin', 'false');
+          // Navigate to face detection for regular employees
+          window.location.href = 'facedetection.html';
+        }
       } else {
         document.getElementById('errorMessage').style.display = 'block';
       }

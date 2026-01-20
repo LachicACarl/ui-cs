@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gracewell NEXUS - View Salary Record</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #1e3a5f;
+      padding: 10px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .navbar .logo {
+      font-weight: bold;
+      color: white;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .logo-icon {
+      font-size: 20px;
+    }
+
+    .navbar .nav-links {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    .nav-links .dashboard-btn {
+      background-color: #f4c10f;
+      color: #000;
+      padding: 8px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .nav-links .dashboard-btn:hover {
+      background-color: #ffda2c;
+    }
+
+    .nav-links .employee-link {
+      color: #f4c10f;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-links .employee-link:hover {
+      background-color: rgba(244, 193, 15, 0.1);
+    }
+
+    .dropdown.active .employee-link {
+      background-color: rgba(244, 193, 15, 0.2);
+    }
+
+    .nav-links .employee-link:hover span,
+    .dropdown.active .employee-link span {
+      display: none;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      left: 0;
+      background-color: white;
+      min-width: 220px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 45px;
+      padding: 8px;
+    }
+
+    .dropdown.active .dropdown-content {
+      display: block;
+    }
+
+    .dropdown-content a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 14px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .dropdown-content a:first-child {
+      background-color: #fff3e0;
+      color: #f57c00;
+      border: 1px solid #f4c10f;
+      margin-top: 0;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f4c10f;
+      color: #000;
+      border-color: #f4c10f;
+    }
+
+    .navbar .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-left: 30px;
+      position: relative;
+    }
+
+    .profile-avatar {
+      background-color: #f4c10f;
+      color: #1e3a5f;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .profile-name {
+      color: white;
+      font-weight: 500;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 50px;
+      padding: 8px;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+    }
+
+    .profile-dropdown a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 13px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-dropdown a:hover {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
+    .container {
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #4a7bc9;
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 30px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      border: none;
+      background: none;
+      font-size: 14px;
+    }
+
+    .back-button:hover {
+      background-color: rgba(74, 123, 201, 0.1);
+    }
+
+    .section-header {
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+      margin: 0 0 10px 0;
+    }
+
+    .section-subtitle {
+      font-size: 14px;
+      color: #999;
+      margin: 0;
+    }
+
+    .record-container {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border: 1px solid #e0e0e0;
+      overflow: hidden;
+    }
+
+    .record-content {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 40px;
+      padding: 40px;
+      align-items: start;
+    }
+
+    .employee-photo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .photo-placeholder {
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, #f4c10f 0%, #ffda2c 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: white;
+      box-shadow: 0 4px 12px rgba(244, 193, 15, 0.3);
+    }
+
+    .employee-details {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .detail-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+    }
+
+    .detail-field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .detail-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #999;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .detail-value.editable {
+      background-color: #fff;
+      cursor: text;
+      border: 1px solid #4a7bc9;
+    }
+
+    .salary-release-info {
+      background-color: #c8e6c9;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #00c853;
+      margin-top: 20px;
+    }
+
+    .release-message {
+      font-size: 13px;
+      color: #1b5e20;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+
+    .status-released {
+      background-color: #e8f5e9;
+      color: #00c853;
+    }
+
+    .status-pending {
+      background-color: #fff8e1;
+      color: #f57c00;
+    }
+
+    .status-claimed {
+      background-color: #e3f2fd;
+      color: #2196f3;
+    }
+
+    .record-footer {
+      background-color: #f5f5f5;
+      padding: 25px 40px;
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background-color: #4a7bc9;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #3a6bb9;
+    }
+
+    .btn-secondary {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
+    .btn-secondary:hover {
+      background-color: #ffda2c;
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      color: #4a7bc9;
+      border: 1px solid #4a7bc9;
+    }
+
+    .btn-outline:hover {
+      background-color: rgba(74, 123, 201, 0.1);
+    }
+
+    @media (max-width: 768px) {
+      .record-content {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        padding: 25px;
+      }
+
+      .detail-group {
+        grid-template-columns: 1fr;
+      }
+
+      .record-footer {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo" onclick="window.location.href='dashboard.html'">
+      <span class="logo-icon">✦</span>
+      Gracewell NEXUS
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="dashboard-btn">Dashboard</a>
+      <div class="dropdown">
+        <div class="employee-link">Employee <span>▼</span></div>
+        <div class="dropdown-content">
+          <a href="attendancemangement.html">Attendance Management</a>
+          <a href="truckingcompany.html">Employee Salary Tracker</a>
+          <a href="employeerecord.html">Employee Records</a>
+          <a href="usermanagement.html">User Management</a>
+        </div>
+      </div>
+    </div>
+    <div class="profile">
+      <div class="profile-avatar">GC</div>
+      <span class="profile-name">Grace Co <span>▼</span></span>
+      <div class="profile-dropdown">
+        <a href="profilesetting.html">👤 Profile</a>
+        <a href="loginpage.html">🚪 Log Out</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <button class="back-button" onclick="window.history.back()">← Back to Salary Tracker</button>
+
+    <div class="section-header">
+      <h1 class="section-title">Edit Salary Record</h1>
+      <p class="section-subtitle">Update employee salary information</p>
+    </div>
+
+    <div class="record-container">
+      <div class="record-content">
+        <!-- Left Side: Employee Photo -->
+        <div class="employee-photo">
+          <div class="photo-placeholder">👤</div>
+          <p style="font-size: 12px; color: #999;">Employee Photo</p>
+        </div>
+
+        <!-- Right Side: Employee Details -->
+        <div class="employee-details">
+          <!-- Row 1: Name and Department -->
+          <div class="detail-group">
+            <div class="detail-field">
+              <label class="detail-label">Employee Name</label>
+              <div class="detail-value" id="employeeName">John Doe</div>
+            </div>
+            <div class="detail-field">
+              <label class="detail-label">Department</label>
+              <div class="detail-value">Human Resources</div>
+            </div>
+          </div>
+
+          <!-- Row 2: ID and Position -->
+          <div class="detail-group">
+            <div class="detail-field">
+              <label class="detail-label">Employee ID</label>
+              <div class="detail-value" id="employeeId">emp605</div>
+            </div>
+            <div class="detail-field">
+              <label class="detail-label">Position</label>
+              <div class="detail-value">HR Manager</div>
+            </div>
+          </div>
+
+          <!-- Row 3: Base Salary and Employment Status -->
+          <div class="detail-group">
+            <div class="detail-field">
+              <label class="detail-label">Base Salary</label>
+              <div class="detail-value editable" id="baseSalary" contenteditable="true" onclick="makeEditable(this)">₱44,000</div>
+            </div>
+            <div class="detail-field">
+              <label class="detail-label">Employment Status</label>
+              <div class="detail-value">Active</div>
+            </div>
+          </div>
+
+          <!-- Row 4: Pay Period -->
+          <div class="detail-field" style="grid-column: 1/-1;">
+            <label class="detail-label">Pay Period</label>
+            <div class="detail-value" id="payPeriod">October 16-31, 2025</div>
+          </div>
+
+          <!-- Salary Release Info -->
+          <div class="salary-release-info" id="releaseInfo" style="display: none;">
+            <div class="release-message" id="releaseMessage"></div>
+            <span class="status-badge" id="statusBadge"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer with Actions -->
+      <div class="record-footer">
+        <button class="btn btn-outline" onclick="window.location.href='truckingcompany.html'">Cancel</button>
+        <button class="btn btn-secondary" onclick="downloadPDF()">📥 Download PDF</button>
+        <button class="btn btn-primary" onclick="saveSalaryRecord()">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load salary data from localStorage
+    function loadSalaryData() {
+      const salaryData = JSON.parse(localStorage.getItem('salaryEditData') || '{}');
+      
+      if (salaryData && salaryData.employeeId) {
+        document.getElementById('employeeId').textContent = salaryData.employeeId;
+        document.getElementById('employeeName').textContent = salaryData.employeeName;
+        document.getElementById('payPeriod').textContent = salaryData.payPeriod;
+        document.getElementById('baseSalary').textContent = salaryData.salary;
+        
+        // Check if salary was released
+        const salaryReleases = JSON.parse(localStorage.getItem('salaryReleases') || '[]');
+        const release = salaryReleases.find(s => s.employeeId === salaryData.employeeId);
+        
+        if (release) {
+          const releaseInfo = document.getElementById('releaseInfo');
+          releaseInfo.style.display = 'block';
+          document.getElementById('releaseMessage').textContent = `Salary Released on ${release.releasedDate} to ${release.employeeName} with amount of ${release.salary} pesos`;
+          
+          const badge = document.getElementById('statusBadge');
+          badge.textContent = release.status.charAt(0).toUpperCase() + release.status.slice(1);
+          badge.className = 'status-badge status-' + release.status;
+        }
+      }
+    }
+
+    // Make salary field editable
+    function makeEditable(element) {
+      element.style.backgroundColor = '#fff';
+      element.style.borderColor = '#4a7bc9';
+      element.focus();
+    }
+
+    // Save salary record
+    function saveSalaryRecord() {
+      const newSalary = document.getElementById('baseSalary').textContent;
+      alert('✓ Salary record updated to ' + newSalary + '\n\nChanges have been saved.');
+      
+      // Update localStorage
+      const salaryData = JSON.parse(localStorage.getItem('salaryEditData') || '{}');
+      salaryData.salary = newSalary;
+      localStorage.setItem('salaryEditData', JSON.stringify(salaryData));
+      
+      // Redirect back to salary tracker
+      setTimeout(() => {
+        window.location.href = 'truckingcompany.html';
+      }, 500);
+    }
+
+    // Download as PDF
+    function downloadPDF() {
+      const employeeId = document.getElementById('employeeId').textContent;
+      const employeeName = document.getElementById('employeeName').textContent;
+      alert('📥 Downloading salary record for ' + employeeName + '...\n\n(PDF generation will be implemented with backend)');
+    }
+
+    // Profile dropdown
+    const profileName = document.querySelector('.profile-name');
+    const profileDropdown = document.querySelector('.profile-dropdown');
+
+    if (profileName && profileDropdown) {
+      profileName.addEventListener('click', function(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!profileDropdown.contains(e.target) && !profileName.contains(e.target)) {
+          profileDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    // Employee dropdown
+    const employeeLink = document.querySelector('.employee-link');
+    const dropdown = document.querySelector('.dropdown');
+
+    if (employeeLink && dropdown) {
+      employeeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    // Load data on page load
+    window.addEventListener('load', loadSalaryData);
+  </script>
+</body>
+</html>

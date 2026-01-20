@@ -66,10 +66,23 @@
       gap: 6px;
       cursor: pointer;
       font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
     }
 
     .nav-links .employee-link:hover {
-      opacity: 0.8;
+      background-color: rgba(244, 193, 15, 0.1);
+      opacity: 1;
+    }
+
+    .dropdown.active .employee-link {
+      background-color: rgba(244, 193, 15, 0.2);
+    }
+
+    .nav-links .employee-link:hover span,
+    .dropdown.active .employee-link span {
+      display: none;
     }
 
     .dropdown {
@@ -80,13 +93,13 @@
     .dropdown-content {
       display: none;
       position: absolute;
-      right: 0;
+      left: 0;
       background-color: white;
       min-width: 220px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       border-radius: 8px;
-      z-index: 1;
-      top: 50px;
+      z-index: 1000;
+      top: 45px;
       padding: 8px;
     }
 
@@ -121,12 +134,17 @@
       display: block;
     }
 
+    .dropdown.active .dropdown-content {
+      display: block;
+    }
+
     .navbar .profile {
       display: flex;
       align-items: center;
       gap: 10px;
       cursor: pointer;
       margin-left: 30px;
+      position: relative;
     }
 
     .profile-avatar {
@@ -153,11 +171,124 @@
       white-space: nowrap;
     }
 
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      min-width: 150px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      z-index: 1000;
+      top: 50px;
+      padding: 8px;
+    }
+
+    .profile-dropdown.active {
+      display: block;
+    }
+
+    .profile-dropdown a {
+      color: #333;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+      font-size: 13px;
+      background-color: #f9f9f9;
+      margin: 5px 0;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      transition: all 0.2s ease;
+    }
+
+    .profile-dropdown a:hover {
+      background-color: #f4c10f;
+      color: #000;
+    }
+
     .welcome {
       padding: 30px 40px;
       font-size: 18px;
       font-weight: 500;
       color: #333;
+    }
+
+    .welcome h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .filter-section {
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background-color: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      background-color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: #f4c10f;
+      color: #f4c10f;
+    }
+
+    .filter-btn.active {
+      background-color: #f4c10f;
+      color: #000;
+      border-color: #f4c10f;
+      font-weight: 600;
+    }
+
+    .date-nav {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+
+    .date-nav:hover {
+      border-color: #f4c10f;
+      color: #f4c10f;
+    }
+
+    .date-input {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .date-display {
+      color: #666;
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: auto;
     }
 
     .dashboard {
@@ -172,7 +303,8 @@
       background-color: #ffffff;
       border-radius: 12px;
       padding: 30px;
-      width: 380px;
+      width: 100%;
+      max-width: 450px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       border: 1px solid #e0e0e0;
     }
@@ -181,7 +313,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .card-icon {
@@ -195,12 +327,62 @@
       font-weight: 600;
     }
 
-    .card p {
+    .card-date {
       margin: 10px 0;
       font-size: 14px;
       color: #666;
+    }
+
+    .card-subtitle {
+      margin: 5px 0 20px 0;
+      font-size: 13px;
+      color: #999;
+      font-weight: 500;
+    }
+
+    .chart-container {
+      display: flex;
+      justify-content: center;
+      margin: 30px 0;
+      height: 150px;
+      width: 100%;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .salary-summary {
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .salary-summary p {
       display: flex;
       justify-content: space-between;
+      font-size: 14px;
+      color: #666;
+      margin: 0;
     }
 
     .card-value {
@@ -232,78 +414,58 @@
       font-size: 13px;
     }
 
-    .absentees li::before {
-      content: '•';
-      margin-right: 8px;
+    .absentees li {
+      color: #333;
     }
 
-    .card {
-      background-color: #ffffff;
-      border-radius: 12px;
-      padding: 30px;
-      width: 380px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 1px solid #e0e0e0;
+    .time-correction-card {
+      background-color: #fff8e1;
+      border-left: 4px solid #f4c10f;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
     }
 
-    .card-header {
+    .time-correction-card h3 {
+      margin: 0 0 15px 0;
+      color: #f57c00;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .correction-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #ffe0b2;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-
-    .card-icon {
-      font-size: 20px;
-    }
-
-    .card h2 {
-      margin: 0;
-      font-size: 18px;
-      color: #333;
-      font-weight: 600;
-    }
-
-    .card p {
-      margin: 10px 0;
-      font-size: 14px;
-      color: #666;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .card-value {
-      font-weight: 600;
-      color: #333;
-    }
-
-    .highlight {
-      color: #00c853; /* Success green */
-      font-weight: bold;
-    }
-
-    .absentees, .pending-payrolls {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .pending-payrolls ul, .absentees ul {
-      margin: 10px 0 0 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .pending-payrolls li, .absentees li {
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
       font-size: 13px;
     }
 
-    .absentees li::before {
-      content: '•';
-      margin-right: 8px;
+    .correction-item:last-child {
+      border-bottom: none;
+    }
+
+    .correction-status {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .correction-status.pending {
+      background-color: #fff9c4;
+      color: #f57f17;
+    }
+
+    .correction-status.approved {
+      background-color: #c8e6c9;
+      color: #2e7d32;
+    }
+
+    .correction-status.denied {
+      background-color: #ffcdd2;
+      color: #c62828;
     }
   </style>
 </head>
@@ -315,18 +477,39 @@
     </div>
     <div class="nav-links">
       <a href="dashboard.html" class="dashboard-btn">Dashboard</a>
-      <div class="employee-link">Employee <span>▼</span></div>
-      <div class="dropdown-content">
-        <a href="attendancemangement.html">Attendance Management</a>
-        <a href="truckingcompany.html">Employee Salary Tracker</a>
-        <a href="employeerecord.html">Employee Records</a>
+      <div class="dropdown">
+        <div class="employee-link">Employee <span>▼</span></div>
+        <div class="dropdown-content">
+          <a href="attendancemangement.html">Attendance Management</a>
+          <a href="truckingcompany.html">Employee Salary Tracker</a>
+          <a href="employeerecord.html">Employee Records</a>
+          <a href="usermanagement.html">User Management</a>
+        </div>
       </div>
-    </div>
     </div>
     <div class="profile">
       <div class="profile-avatar">GC</div>
       <span class="profile-name">Grace Co <span>▼</span></span>
+      <div class="profile-dropdown">
+        <a href="profilesetting.html">👤 Profile</a>
+        <a href="loginpage.html">🚪 Log Out</a>
+      </div>
     </div>
+  </div>
+
+  <div class="welcome">
+    <h1>Welcome, Jodi Co</h1>
+  </div>
+
+  <div class="filter-section">
+    <span class="filter-label">Filter by Date:</span>
+    <button class="filter-btn active" onclick="filterByDate('today')">Today</button>
+    <button class="filter-btn" onclick="filterByDate('lastweek')">Last Week</button>
+    <button class="filter-btn" onclick="filterByDate('lastmonth')">Last Month</button>
+    <button class="date-nav" onclick="previousDate()">‹</button>
+    <input type="date" id="dateInput" class="date-input">
+    <button class="date-nav" onclick="nextDate()">›</button>
+    <span class="date-display" id="dateDisplay">Sunday, January 19, 2026</span>
   </div>
 
   <div class="dashboard">
@@ -335,16 +518,31 @@
         <span class="card-icon">📋</span>
         <h2>Attendance Tracker</h2>
       </div>
-      <p><strong>Thursday, October 30, 2025</strong></p>
-      <p>
-        <span>Total Present</span>
-        <span class="card-value highlight">6</span>
-      </p>
+      <p class="card-date" id="attendanceDate"><strong>Sunday, January 19, 2026</strong></p>
+      <p class="card-subtitle">Total: 26 employees</p>
+      
+      <div class="chart-container">
+        <canvas id="attendanceChart"></canvas>
+      </div>
+      
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #00c853;"></span>
+          <span>Total Present</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #ff6b6b;"></span>
+          <span>Absences: 4</span>
+        </div>
+      </div>
+
       <div class="absentees">
         <strong>Absentees:</strong>
-        <ul>
-          <li>Michael Brown</li>
-          <li>James Wilson</li>
+        <ul id="absenteesList">
+          <li>• Robert Johnson</li>
+          <li>• Michael Brown</li>
+          <li>• David Miller</li>
+          <li>• Sarah Davis</li>
         </ul>
       </div>
     </div>
@@ -354,29 +552,265 @@
         <span class="card-icon">💰</span>
         <h2>Salary Tracker</h2>
       </div>
-      <p><strong>October 16–31, 2025</strong></p>
-      <p>
-        <span>Pending Salaries</span>
-        <span class="card-value">₱180,000</span>
-      </p>
-      <p>
-        <span>Released Salaries</span>
-        <span class="card-value">₱197,000</span>
-      </p>
-      <p>
-        <span>Pending Employees</span>
-        <span class="card-value">4</span>
-      </p>
+      <p class="card-date" id="salaryDate"><strong>Sunday, January 19, 2026</strong></p>
+      <p class="card-subtitle">Total: 25 employees</p>
+      
+      <div class="chart-container">
+        <canvas id="salaryChart"></canvas>
+      </div>
+      
+      <div class="chart-legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #00c853;"></span>
+          <span>Paid: 17</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #f4c10f;"></span>
+          <span>Not Paid: 3</span>
+        </div>
+      </div>
+
+      <div class="salary-summary">
+        <p><span>Pending Salaries</span><span class="card-value">₱135,000</span></p>
+        <p><span>Released Salaries</span><span class="card-value">₱750,000</span></p>
+      </div>
+
+      <div class="pending-payrolls">
+        <strong>Pending Employees:</strong>
+        <ul id="pendingEmployeesList">
+          <li><span>Robert Johnson</span><span>₱48,730</span></li>
+          <li><span>Michael Brown</span><span>₱49,730</span></li>
+          <li><span>David Miller</span><span>₱45,404</span></li>
+        </ul>
+      </div>
+
       <div class="pending-payrolls">
         <strong>Pending Payrolls:</strong>
-        <ul>
-          <li><span>Robert Johnson</span><span>₱45,000</span></li>
-          <li><span>Michael Brown</span><span>₱46,000</span></li>
-          <li><span>David Miller</span><span>₱44,000</span></li>
-          <li><span>+ 1 more...</span></li>
+        <ul id="pendingPayrollsList">
+          <li><span>Robert Johnson</span><span>₱48,730</span></li>
+          <li><span>Michael Brown</span><span>₱49,730</span></li>
+          <li><span>David Miller</span><span>₱45,404</span></li>
         </ul>
+      </div>
+
+      <div class="time-correction-card" id="timeCorrectionCard" style="display: none;">
+        <h3>⏱️ Time Correction Requests</h3>
+        <div id="correctionsList"></div>
       </div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    let currentDate = new Date(2026, 0, 19); // January 19, 2026
+    let attendanceChart = null;
+    let salaryChart = null;
+
+    // Initialize charts
+    function initCharts() {
+      const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+      const salaryCtx = document.getElementById('salaryChart').getContext('2d');
+
+      // Destroy existing charts if they exist
+      if (attendanceChart) attendanceChart.destroy();
+      if (salaryChart) salaryChart.destroy();
+
+      attendanceChart = new Chart(attendanceCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Present', 'Absent'],
+          datasets: [{
+            data: [22, 4],
+            backgroundColor: ['#00c853', '#ff6b6b'],
+            borderColor: ['#00c853', '#ff6b6b'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+
+      salaryChart = new Chart(salaryCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Not Paid'],
+          datasets: [{
+            data: [17, 8],
+            backgroundColor: ['#00c853', '#f4c10f'],
+            borderColor: ['#00c853', '#f4c10f'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+    }
+
+    // Format date display
+    function formatDateDisplay(date) {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    // Update date display
+    function updateDateDisplay() {
+      const dateDisplay = document.getElementById('dateDisplay');
+      const attendanceDate = document.getElementById('attendanceDate');
+      const salaryDate = document.getElementById('salaryDate');
+      
+      const formattedDate = formatDateDisplay(currentDate);
+      dateDisplay.textContent = formattedDate;
+      attendanceDate.innerHTML = `<strong>${formattedDate}</strong>`;
+      salaryDate.innerHTML = `<strong>${formattedDate}</strong>`;
+
+      document.getElementById('dateInput').valueAsDate = currentDate;
+    }
+
+    // Filter by date
+    function filterByDate(period) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      const today = new Date(2026, 0, 19);
+      
+      if (period === 'today') {
+        currentDate = new Date(today);
+      } else if (period === 'lastweek') {
+        currentDate = new Date(today);
+        currentDate.setDate(currentDate.getDate() - 7);
+      } else if (period === 'lastmonth') {
+        currentDate = new Date(today);
+        currentDate.setMonth(currentDate.getMonth() - 1);
+      }
+
+      updateDateDisplay();
+      initCharts();
+    }
+
+    // Navigation functions
+    function previousDate() {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      currentDate.setDate(currentDate.getDate() - 1);
+      updateDateDisplay();
+      initCharts();
+    }
+
+    function nextDate() {
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      currentDate.setDate(currentDate.getDate() + 1);
+      updateDateDisplay();
+      initCharts();
+    }
+
+    // Date input change
+    document.addEventListener('DOMContentLoaded', function() {
+      const dateInput = document.getElementById('dateInput');
+      
+      dateInput.addEventListener('change', function() {
+        currentDate = new Date(this.valueAsDate);
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        updateDateDisplay();
+        initCharts();
+      });
+
+      // Initialize on page load
+      updateDateDisplay();
+      initCharts();
+    });
+
+    // Profile dropdown menu
+    const profileName = document.querySelector('.profile-name');
+    const profileDropdown = document.querySelector('.profile-dropdown');
+
+    if (profileName && profileDropdown) {
+      profileName.addEventListener('click', function(e) {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!profileDropdown.contains(e.target) && !profileName.contains(e.target)) {
+          profileDropdown.classList.remove('active');
+        }
+      });
+    }
+
+    // Employee dropdown
+    const employeeLink = document.querySelector('.employee-link');
+    const dropdown = document.querySelector('.dropdown');
+
+    if (employeeLink && dropdown) {
+      employeeLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function(e) {
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.remove('active');
+        }
+      });
+
+      // Prevent closing when clicking inside dropdown
+      dropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+    }
+
+    // Display time corrections for current employee
+    function displayTimeCorrections() {
+      const currentEmployeeId = localStorage.getItem('employeeId');
+      const corrections = JSON.parse(localStorage.getItem('timeCorrections') || '{}');
+      
+      if (currentEmployeeId && corrections[currentEmployeeId]) {
+        const correction = corrections[currentEmployeeId];
+        const timeCorrectionCard = document.getElementById('timeCorrectionCard');
+        const correctionsList = document.getElementById('correctionsList');
+        
+        // Create correction item
+        const correctionItem = document.createElement('div');
+        correctionItem.className = 'correction-item';
+        
+        const statusClass = correction.status === 'Approved' ? 'approved' : 
+                           correction.status === 'Denied' ? 'denied' : 'pending';
+        const statusIcon = correction.status === 'Approved' ? '✓' : 
+                          correction.status === 'Denied' ? '✕' : '⏳';
+        
+        correctionItem.innerHTML = `
+          <div>
+            <strong>${correction.correctedTime || 'Time Correction'}</strong>
+            <br>
+            <small style="color: #666;">Submitted: ${correction.approvalDate}</small>
+          </div>
+          <span class="correction-status ${statusClass}">${statusIcon} ${correction.status}</span>
+        `;
+        
+        correctionsList.innerHTML = '';
+        correctionsList.appendChild(correctionItem);
+        timeCorrectionCard.style.display = 'block';
+      }
+    }
+
+    // Load corrections on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      displayTimeCorrections();
+    });
+  </script>
 </body>
 </html>

@@ -3,10 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gracewell NEXUS - Attendance Management</title>
+  <title>Admin Dashboard - Gracewell NEXUS</title>
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f5f5f5;
       color: #333;
@@ -240,63 +245,41 @@
       padding: 25px;
       flex: 1;
       min-width: 150px;
-      max-width: 200px;
+      max-width: 220px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       border: 1px solid #e0e0e0;
       text-align: center;
-      position: relative;
     }
 
     .stat-icon {
-      font-size: 28px;
+      font-size: 24px;
       margin-bottom: 10px;
+      float: right;
     }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 12px;
       color: #999;
       margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      text-align: left;
+      clear: both;
     }
 
     .stat-value {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: bold;
       color: #333;
-    }
-
-    .stat-value.green {
-      color: #00c853;
-    }
-
-    .stat-value.red {
-      color: #d32f2f;
+      text-align: left;
     }
 
     .stat-value.orange {
       color: #f57c00;
     }
 
-    .stat-indicator {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-    }
-
-    .stat-indicator.green {
-      background-color: #00c853;
-    }
-
-    .stat-indicator.red {
-      background-color: #d32f2f;
-    }
-
-    .stat-indicator.orange {
-      background-color: #f57c00;
+    .stat-value.green {
+      color: #00c853;
     }
 
     .records-section {
@@ -341,7 +324,7 @@
       background: transparent;
       outline: none;
       font-size: 13px;
-      width: 250px;
+      width: 200px;
       color: #333;
     }
 
@@ -368,6 +351,34 @@
 
     .export-btn:hover {
       background-color: #ffda2c;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #e0e0e0;
+      background-color: #f9f9f9;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      transition: all 0.2s ease;
+    }
+
+    .filter-btn.active {
+      background-color: #4a7bc9;
+      color: white;
+      border-color: #4a7bc9;
+    }
+
+    .filter-btn:hover {
+      border-color: #4a7bc9;
     }
 
     table {
@@ -407,56 +418,70 @@
       font-weight: 600;
     }
 
-    .status-present {
-      background-color: #e8f5e9;
-      color: #00c853;
-    }
-
-    .status-absent {
-      background-color: #ffebee;
-      color: #d32f2f;
-    }
-
-    .status-late {
+    .status-pending {
       background-color: #fff3e0;
       color: #f57c00;
     }
 
-    .action-buttons {
-      display: flex;
-      gap: 8px;
+    .status-released {
+      background-color: #e8f5e9;
+      color: #00c853;
     }
 
     .action-btn {
-      padding: 6px 12px;
+      background-color: #4a7bc9;
+      color: white;
       border: none;
-      border-radius: 4px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+    }
+
+    .action-btn:hover {
+      background-color: #3a6ba9;
+    }
+
+    .admin-tab {
+      display: none;
+    }
+
+    .admin-tab.active {
+      display: block;
+    }
+
+    .tab-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 20px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
     }
 
-    .action-btn.approve {
-      background-color: #00c853;
-      color: white;
+    .tab-btn.active {
+      color: #1e3a5f;
+      border-bottom-color: #f4c10f;
     }
 
-    .action-btn.approve:hover {
-      background-color: #00a844;
-    }
-
-    .action-btn.deny {
-      background-color: #ff6b6b;
-      color: white;
-    }
-
-    .action-btn.deny:hover {
-      background-color: #ff5252;
+    .tab-btn:hover {
+      color: #1e3a5f;
     }
   </style>
 </head>
 <body>
+  <!-- Navbar -->
   <div class="navbar">
     <div class="logo" onclick="window.location.href='dashboard.html'">
       <span class="logo-icon">✦</span>
@@ -484,104 +509,126 @@
     </div>
   </div>
 
+  <!-- Main Content -->
   <div class="container">
+    <!-- Header -->
     <div class="section-header">
-      <h1 class="section-title">Attendance Management</h1>
-      <p class="section-subtitle">Track employee attendance and work hours</p>
+      <h1 class="section-title">Admin Dashboard</h1>
+      <p class="section-subtitle">System Administration & Management</p>
     </div>
 
+    <!-- Statistics -->
     <div class="stats-container">
       <div class="stat-card">
         <div class="stat-label">Total Employees</div>
-        <div class="stat-value">8</div>
+        <div class="stat-value">156</div>
         <div class="stat-icon">👥</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Present</div>
-        <div class="stat-value green">6</div>
-        <div class="stat-indicator green"></div>
+        <div class="stat-label">Present Today</div>
+        <div class="stat-value green">142</div>
+        <div class="stat-icon">✓</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Absent</div>
-        <div class="stat-value red">2</div>
-        <div class="stat-indicator red"></div>
+        <div class="stat-label">On Leave</div>
+        <div class="stat-value orange">8</div>
+        <div class="stat-icon">📋</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Late</div>
-        <div class="stat-value orange">1</div>
-        <div class="stat-indicator orange"></div>
+        <div class="stat-label">System Users</div>
+        <div class="stat-value">5</div>
+        <div class="stat-icon">👤</div>
+
+
       </div>
     </div>
 
+    <!-- Records Section -->
     <div class="records-section">
       <div class="records-header">
-        <h2 class="records-title">Attendance Records - Monday, October 27, 2025 to Thursday, October 30, 2025</h2>
-        <div class="search-export">
-          <div class="search-box">
-            <input type="text" placeholder="Search by name, department, or status...">
-            <span class="search-icon">🔍</span>
-          </div>
-          <button class="export-btn">📊 Export</button>
-        </div>
+        <h2 class="records-title">Admin Controls & Management</h2>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Employee Name</th>
-            <th>Department</th>
-            <th>Check In</th>
-            <th>Check Out</th>
-            <th>Corrected Time</th>
-            <th>Status</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr data-employee-id="E001">
-            <td>Roberta Gonzales</td>
-            <td>Operations</td>
-            <td>Oct 27, 2025 - 08:00 AM</td>
-            <td>Oct 30, 2025 - 04:00 PM</td>
-            <td>Oct 30, 2025 - 05:00 PM</td>
-            <td><span class="status-badge status-present">Pending</span></td>
-            <td>
-              <div class="action-buttons">
-                <button class="action-btn approve" onclick="approveAttendance(this)">Approve</button>
-                <button class="action-btn deny" onclick="denyAttendance(this)">Deny</button>
-              </div>
-            </td>
-          </tr>
-          <tr data-employee-id="E002">
-            <td>Sarah Williams</td>
-            <td>Operations</td>
-            <td>Jan 15, 2026 - 08:00 AM</td>
-            <td>-</td>
-            <td>Jan 15, 2026 - 07:00 AM</td>
-            <td><span class="status-badge status-present">Pending</span></td>
-            <td>
-              <div class="action-buttons">
-                <button class="action-btn approve" onclick="approveAttendance(this)">Approve</button>
-                <button class="action-btn deny" onclick="denyAttendance(this)">Deny</button>
-              </div>
-            </td>
-          </tr>
-          <tr data-employee-id="E003">
-            <td>Michael Brown</td>
-            <td>Operations</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td><span class="status-badge status-absent">Absent</span></td>
-            <td>
-              <div class="action-buttons">
-                <button class="action-btn approve" onclick="approveAttendance(this)">Approve</button>
-                <button class="action-btn deny" onclick="denyAttendance(this)">Deny</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Tab Buttons -->
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('activities')">Recent Activities</button>
+        <button class="tab-btn" onclick="switchTab('logs')">System Logs</button>
+        <button class="tab-btn" onclick="switchTab('alerts')">Alerts</button>
+      </div>
+
+      <!-- Recent Activities Tab -->
+      <div id="activities" class="admin-tab active">
+        <ul class="activity-list">
+          <li class="activity-item">
+            <span>Employee Check-in: John Smith (ID: E001)</span>
+            <span class="activity-time">Today, 09:15 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>Salary Release: Department - Finance</span>
+            <span class="activity-time">Today, 08:30 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>System Backup Completed</span>
+            <span class="activity-time">Yesterday, 11:45 PM</span>
+          </li>
+          <li class="activity-item">
+            <span>User Access: Sarah Johnson (Admin)</span>
+            <span class="activity-time">Yesterday, 08:00 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>Attendance Report Generated</span>
+            <span class="activity-time">2 days ago</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- System Logs Tab -->
+      <div id="logs" class="admin-tab">
+        <ul class="activity-list">
+          <li class="activity-item">
+            <span>[INFO] System started successfully</span>
+            <span class="activity-time">Today, 06:00 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>[INFO] Database synced</span>
+            <span class="activity-time">Today, 06:15 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>[INFO] Face detection service running</span>
+            <span class="activity-time">Today, 06:20 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>[WARNING] High memory usage detected</span>
+            <span class="activity-time">Today, 02:30 PM</span>
+          </li>
+          <li class="activity-item">
+            <span>[INFO] Scheduled backup completed</span>
+            <span class="activity-time">Yesterday, 11:00 PM</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Alerts Tab -->
+      <div id="alerts" class="admin-tab">
+        <ul class="activity-list">
+          <li class="activity-item">
+            <span>🔴 3 Failed Login Attempts</span>
+            <span class="activity-time">Today, 10:45 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>🟡 Disk Space: 85% Full</span>
+            <span class="activity-time">Today, 02:00 PM</span>
+          </li>
+          <li class="activity-item">
+            <span>🟢 All Systems Operational</span>
+            <span class="activity-time">Today, 09:00 AM</span>
+          </li>
+          <li class="activity-item">
+            <span>🔴 1 Employee Has Exceeded Leave Limit</span>
+            <span class="activity-time">Yesterday, 04:30 PM</span>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 
@@ -625,93 +672,41 @@
       });
     }
 
-    // Export button functionality
-    const exportBtn = document.querySelector('.export-btn');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', function() {
-        alert('Exporting attendance data as CSV...');
-        // Could add actual export logic here
-      });
+    // Tab switching
+    function switchTab(tabName) {
+      // Hide all tabs
+      const tabs = document.querySelectorAll('.admin-tab');
+      tabs.forEach(tab => tab.classList.remove('active'));
+
+      // Remove active class from all tab buttons
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+
+      // Show selected tab
+      document.getElementById(tabName).classList.add('active');
+
+      // Add active class to clicked button
+      event.target.classList.add('active');
     }
 
-    // Search functionality
-    const searchInput = document.querySelector('.search-box input');
-    if (searchInput) {
-      searchInput.addEventListener('keyup', function() {
-        const filter = this.value.toLowerCase();
-        const table = document.querySelector('table');
-        const rows = table.querySelectorAll('tbody tr');
-        
-        rows.forEach(row => {
-          const text = row.textContent.toLowerCase();
-          if (text.includes(filter)) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-      });
+    // Logout function
+    function logout() {
+      localStorage.removeItem('employeeId');
+      localStorage.removeItem('employeeName');
+      localStorage.removeItem('isAdmin');
+      window.location.href = 'loginpage.html';
     }
 
-    // Approve button functionality
-    function approveAttendance(btn) {
-      const row = btn.closest('tr');
-      const employeeId = row.getAttribute('data-employee-id');
-      const employeeName = row.querySelector('td:nth-child(1)').textContent;
-      const statusBadge = row.querySelector('.status-badge');
-      
-      // Save approval to localStorage
-      const corrections = JSON.parse(localStorage.getItem('timeCorrections') || '{}');
-      corrections[employeeId] = {
-        status: 'Approved',
-        employeeName: employeeName,
-        approvalDate: new Date().toLocaleString(),
-        correctedTime: row.querySelector('td:nth-child(5)').textContent
-      };
-      localStorage.setItem('timeCorrections', JSON.stringify(corrections));
-      
-      // Update UI
-      statusBadge.className = 'status-badge status-present';
-      statusBadge.textContent = '✓ Approved';
-      
-      // Disable buttons
-      btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.nextElementSibling.disabled = true;
-      btn.nextElementSibling.style.opacity = '0.6';
-      
-      alert(`✓ Approved time correction for ${employeeName}. Employee will see the update in their portal.`);
+    // Check if user is admin
+    function checkAdminAccess() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      if (!isAdmin || isAdmin !== 'true') {
+        window.location.href = 'dashboard.html';
+      }
     }
 
-    // Deny button functionality
-    function denyAttendance(btn) {
-      const row = btn.closest('tr');
-      const employeeId = row.getAttribute('data-employee-id');
-      const employeeName = row.querySelector('td:nth-child(1)').textContent;
-      const statusBadge = row.querySelector('.status-badge');
-      
-      // Save denial to localStorage
-      const corrections = JSON.parse(localStorage.getItem('timeCorrections') || '{}');
-      corrections[employeeId] = {
-        status: 'Denied',
-        employeeName: employeeName,
-        approvalDate: new Date().toLocaleString(),
-        reason: 'Request was not approved by admin'
-      };
-      localStorage.setItem('timeCorrections', JSON.stringify(corrections));
-      
-      // Update UI
-      statusBadge.className = 'status-badge status-absent';
-      statusBadge.textContent = '✕ Denied';
-      
-      // Disable buttons
-      btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.previousElementSibling.disabled = true;
-      btn.previousElementSibling.style.opacity = '0.6';
-      
-      alert(`✕ Denied time correction for ${employeeName}. Employee will be notified.`);
-    }
+    // Run check on page load
+    checkAdminAccess();
   </script>
 </body>
 </html>
