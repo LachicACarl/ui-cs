@@ -710,20 +710,29 @@
     function logout() {
       localStorage.removeItem('employeeId');
       localStorage.removeItem('employeeName');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isAdmin');
       localStorage.removeItem('isManager');
       window.location.href = 'loginpage.html';
     }
 
-    // Check if user is manager
+    // Check if user is manager or admin (managers and admins can access manager dashboard)
     function checkManagerAccess() {
       const isManager = localStorage.getItem('isManager');
-      if (!isManager || isManager !== 'true') {
-        window.location.href = 'dashboard.html';
+      const isAdmin = localStorage.getItem('isAdmin');
+      const userRole = localStorage.getItem('userRole');
+      
+      // Allow access for managers and admins
+      if ((!isManager || isManager !== 'true') && (!isAdmin || isAdmin !== 'true')) {
+        // If neither manager nor admin, redirect to employee dashboard
+        window.location.href = 'facedetection.html';
       }
     }
 
     // Run check on page load
-    checkManagerAccess();
+    document.addEventListener('DOMContentLoaded', function() {
+      checkManagerAccess();
+    });
   </script>
 </body>
 </html>

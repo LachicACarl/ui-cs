@@ -693,20 +693,32 @@
     function logout() {
       localStorage.removeItem('employeeId');
       localStorage.removeItem('employeeName');
+      localStorage.removeItem('userRole');
       localStorage.removeItem('isAdmin');
+      localStorage.removeItem('isManager');
       window.location.href = 'loginpage.html';
     }
 
-    // Check if user is admin
+    // Check if user is admin (strict check)
     function checkAdminAccess() {
       const isAdmin = localStorage.getItem('isAdmin');
-      if (!isAdmin || isAdmin !== 'true') {
-        window.location.href = 'dashboard.html';
+      const userRole = localStorage.getItem('userRole');
+      
+      // Both checks must pass - isAdmin true AND userRole is admin
+      if (!isAdmin || isAdmin !== 'true' || userRole !== 'admin') {
+        // Redirect based on actual role
+        if (userRole === 'manager') {
+          window.location.href = 'managerdashboard.html';
+        } else {
+          window.location.href = 'facedetection.html';
+        }
       }
     }
 
     // Run check on page load
-    checkAdminAccess();
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAdminAccess();
+    });
   </script>
 </body>
 </html>

@@ -587,6 +587,33 @@
 
   <script>
     // Profile dropdown menu
+    // ===================== ACCESS CONTROL =====================
+    // Only admins and managers can access attendance management
+    function checkAccess() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      const isManager = localStorage.getItem('isManager');
+      const userRole = localStorage.getItem('userRole');
+      
+      if ((!isAdmin || isAdmin !== 'true') && (!isManager || isManager !== 'true')) {
+        window.location.href = 'facedetection.html';
+      }
+    }
+
+    // Run check on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAccess();
+    });
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem('employeeId');
+      localStorage.removeItem('employeeName');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('isManager');
+      window.location.href = 'loginpage.html';
+    }
+
     const profileName = document.querySelector('.profile-name');
     const profileDropdown = document.querySelector('.profile-dropdown');
 

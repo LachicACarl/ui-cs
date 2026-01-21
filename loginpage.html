@@ -64,6 +64,26 @@
       margin-top: 10px;
       display: none;
     }
+
+    .demo-info {
+      background-color: #f0f0f0;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 12px;
+      text-align: left;
+      color: #666;
+    }
+
+    .demo-info strong {
+      color: #333;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .demo-info p {
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body>
@@ -77,30 +97,61 @@
       <button type="submit">Sign In</button>
       <div class="error-message" id="errorMessage">Invalid credentials. Please try again.</div>
     </form>
+    <div class="demo-info">
+      <strong>Test Credentials:</strong>
+      <p><strong>Admin Dashboard:</strong> admin</p>
+      <p><strong>Manager Dashboard:</strong> manager</p>
+      <p><strong>Employee Dashboard:</strong> employee</p>
+      <p style="margin-top: 8px; font-size: 11px;">Password: any value</p>
+    </div>
   </div>
 
   <script>
-    // Admin employee IDs
-    const adminIds = ['A001', 'A002', 'A003'];
+    // Role-based employee IDs
+    const adminIds = ['A001', 'A002', 'A003', 'admin'];
+    const managerIds = ['M001', 'M002', 'M003', 'manager'];
+    // All other IDs are treated as employees (including 'employee')
 
     document.getElementById('loginForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const employeeId = document.getElementById('employeeId').value.trim();
+      const employeeId = document.getElementById('employeeId').value.trim().toLowerCase();
       const password = document.getElementById('password').value;
       
       // Basic validation (replace with actual authentication)
       if (employeeId && password) {
         // Store employee info
         localStorage.setItem('employeeId', employeeId);
-        localStorage.setItem('employeeName', employeeId); // In production, fetch actual name
+        
+        // Set display name based on role
+        let displayName = employeeId;
+        if (employeeId === 'admin') displayName = 'Admin User';
+        else if (employeeId === 'manager') displayName = 'Manager User';
+        else if (employeeId === 'employee') displayName = 'Employee User';
+        
+        localStorage.setItem('employeeName', displayName);
+        
+        // Clear all role flags first
+        localStorage.setItem('isAdmin', 'false');
+        localStorage.setItem('isManager', 'false');
+        localStorage.setItem('userRole', 'employee');
 
-        // Check if employee is an admin
+        // Check role and assign accordingly
         if (adminIds.includes(employeeId)) {
           localStorage.setItem('isAdmin', 'true');
+          localStorage.setItem('isManager', 'false');
+          localStorage.setItem('userRole', 'admin');
           // Navigate to admin dashboard
           window.location.href = 'admindashboard.html';
+        } else if (managerIds.includes(employeeId)) {
+          localStorage.setItem('isAdmin', 'false');
+          localStorage.setItem('isManager', 'true');
+          localStorage.setItem('userRole', 'manager');
+          // Navigate to manager dashboard
+          window.location.href = 'managerdashboard.html';
         } else {
           localStorage.setItem('isAdmin', 'false');
+          localStorage.setItem('isManager', 'false');
+          localStorage.setItem('userRole', 'employee');
           // Navigate to face detection for regular employees
           window.location.href = 'facedetection.html';
         }

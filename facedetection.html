@@ -546,20 +546,46 @@
     }
 
     function goDashboard() {
-      // Check if user is admin
+      // Redirect to appropriate dashboard based on role
+      const userRole = localStorage.getItem('userRole');
       const isAdmin = localStorage.getItem('isAdmin');
-      if (isAdmin === 'true') {
+      const isManager = localStorage.getItem('isManager');
+      
+      if (isAdmin === 'true' || userRole === 'admin') {
         window.location.href = 'admindashboard.html';
+      } else if (isManager === 'true' || userRole === 'manager') {
+        window.location.href = 'managerdashboard.html';
       } else {
         window.location.href = 'dashboard.html';
       }
+    }
+
+    // Check access on page load - admins and managers should not access employee page
+    function checkEmployeeAccess() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      const isManager = localStorage.getItem('isManager');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (isAdmin === 'true' || userRole === 'admin') {
+        window.location.href = 'admindashboard.html';
+      } else if (isManager === 'true' || userRole === 'manager') {
+        window.location.href = 'managerdashboard.html';
+      }
+      // Allow regular employees to stay on this page
     }
 
     function logout() {
       alert('Logging out...');
       localStorage.removeItem('employeeId');
       localStorage.removeItem('employeeName');
+      localStorage.removeItem('userRole');
       localStorage.removeItem('isAdmin');
+      localStorage.removeItem('isManager');
       window.location.href = 'loginpage.html';
     }
+
+    // Check access when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      checkEmployeeAccess();
+    });
   </script>
