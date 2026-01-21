@@ -22,6 +22,7 @@ const EmployeeDashboard = ({ user }) => {
   const [showNotifyAbsenceModal, setShowNotifyAbsenceModal] = useState(false);
   const [showRequestCorrectionModal, setShowRequestCorrectionModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showEnlargedQR, setShowEnlargedQR] = useState(false);
 
   const [absenceData, setAbsenceData] = useState({
     date: '',
@@ -190,9 +191,6 @@ const EmployeeDashboard = ({ user }) => {
           >
             Last Month
           </button>
-          <span className="date-display" style={{ marginLeft: 'auto' }}>
-            {formatDate(currentDate)}
-          </span>
         </div>
 
         <div className="dashboard">
