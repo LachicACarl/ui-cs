@@ -298,23 +298,6 @@ const EmployeeDashboard = ({ user }) => {
             </table>
           </div>
         </div>
-
-        {/* Salary Actions */}
-        <div className="salary-action-section">
-          <div className="salary-status-row">
-            <span className="status-label">Status:</span>
-            <span className="status-badge pending">Pending</span>
-            <span className="status-badge released">Released</span>
-            <span className="status-badge claimed">Claimed</span>
-          </div>
-          <div className="salary-action-row">
-            <span className="release-date">Release Date: 10/10/2025</span>
-            <div className="salary-action-buttons">
-              <button className="action-btn claim-btn" onClick={handleClaim}>Claim</button>
-              <button className="action-btn receipt-btn" onClick={handleViewReceipt}>View Receipt</button>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Notify Absence Modal */}
