@@ -165,7 +165,7 @@ const EmployeeRecords = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Employee Details</h2>
-              <button className="close-btn" onClick={() => setShowViewModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowViewModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="detail-section">
@@ -191,7 +191,7 @@ const EmployeeRecords = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Edit Employee Information</h2>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">
@@ -258,7 +258,7 @@ const EmployeeRecords = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Add New Employee</h2>
-              <button className="close-btn" onClick={() => setShowAddModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowAddModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">

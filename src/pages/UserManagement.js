@@ -141,7 +141,7 @@ const UserManagement = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Edit User</h2>
-              <button className="close-btn" onClick={() => setShowEditModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowEditModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">

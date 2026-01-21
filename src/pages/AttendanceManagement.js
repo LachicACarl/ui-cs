@@ -166,7 +166,7 @@ const AttendanceManagement = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Request Time Correction</h2>
-              <button className="close-btn" onClick={() => setShowCorrectionModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowCorrectionModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">

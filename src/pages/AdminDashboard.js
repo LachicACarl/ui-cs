@@ -65,12 +65,12 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div className="stat-card">
             <div className="stat-label">Present Today</div>
             <div className="stat-value green">142</div>
-            <div className="stat-icon">✓</div>
+            <div className="stat-icon">•</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">On Leave</div>
             <div className="stat-value orange">8</div>
-            <div className="stat-icon">📋</div>
+            <div className="stat-icon">□</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">System Users</div>

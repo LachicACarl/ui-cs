@@ -101,7 +101,7 @@ const SalaryTracker = ({ user, onLogout }) => {
 
         <div className="action-buttons">
           <button className="btn-export" onClick={exportToCSV}>📥 Export</button>
-          <button className="btn-add" onClick={() => setShowAddSalaryModal(true)}>➕ Add Salary</button>
+          <button className="btn-add" onClick={() => setShowAddSalaryModal(true)}>+ Add Salary</button>
         </div>
 
         <table className="salary-table">
@@ -159,7 +159,7 @@ const SalaryTracker = ({ user, onLogout }) => {
           <div className="modal-content receipt-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Salary Receipt</h2>
-              <button className="close-btn" onClick={() => setShowReceiptModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowReceiptModal(false)}>×</button>
             </div>
             <div className="receipt-content">
               <div className="receipt-header">
@@ -218,7 +218,7 @@ const SalaryTracker = ({ user, onLogout }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Add New Salary Record</h2>
-              <button className="close-btn" onClick={() => setShowAddSalaryModal(false)}>✕</button>
+              <button className="close-btn" onClick={() => setShowAddSalaryModal(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">
