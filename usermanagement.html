@@ -930,6 +930,31 @@
   </div>
 
   <script>
+    // Check admin access - only admins can access user management
+    function checkAdminAccess() {
+      const isAdmin = localStorage.getItem('isAdmin');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (!isAdmin || isAdmin !== 'true' || userRole !== 'admin') {
+        window.location.href = 'facedetection.html';
+      }
+    }
+
+    // Run check on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      checkAdminAccess();
+    });
+
+    // Logout function
+    function logout() {
+      localStorage.removeItem('employeeId');
+      localStorage.removeItem('employeeName');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('isAdmin');
+      localStorage.removeItem('isManager');
+      window.location.href = 'loginpage.html';
+    }
+
     // Profile dropdown
     const profileName = document.querySelector('.profile-name');
     const profileDropdown = document.querySelector('.profile-dropdown');
