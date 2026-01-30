@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './ProfileSetting.css';
 
-const ProfileSetting = ({ user, onLogout }) => {
+const ProfileSetting = ({ user, onLogout, setUser }) => {
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
     firstName: user?.employeeName?.split(' ')[0] || 'Roberta',
@@ -16,7 +16,7 @@ const ProfileSetting = ({ user, onLogout }) => {
     emergencyContactName: 'Maria Gonzales',
   });
 
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState(user?.profileImage || localStorage.getItem('userProfileImage') || null);
   const [showImageModal, setShowImageModal] = useState(false);
   const [tempImage, setTempImage] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -27,6 +27,38 @@ const ProfileSetting = ({ user, onLogout }) => {
     newPassword: '',
     confirmPassword: ''
   });
+
+  // Employment history data
+  const [employmentHistory] = useState([
+    {
+      id: 1,
+      event: 'Hired',
+      date: '2022-01-15',
+      details: 'Joined as Truck Driver',
+      status: 'completed'
+    },
+    {
+      id: 2,
+      event: 'Position Update',
+      date: '2023-06-01',
+      details: 'Promoted to Senior Driver',
+      status: 'completed'
+    },
+    {
+      id: 3,
+      event: 'Performance Review',
+      date: '2024-01-10',
+      details: 'Annual performance review - Excellent',
+      status: 'completed'
+    },
+    {
+      id: 4,
+      event: 'Account Status',
+      date: '2024-01-26',
+      details: 'Account status: Active',
+      status: 'completed'
+    }
+  ]);
 
   const handleEditClick = () => {
     setEditData(profileData);
@@ -68,6 +100,10 @@ const ProfileSetting = ({ user, onLogout }) => {
     if (tempImage) {
       setProfileImage(tempImage);
       localStorage.setItem('userProfileImage', tempImage);
+      // Update user object with new profile image
+      if (setUser && user) {
+        setUser({ ...user, profileImage: tempImage });
+      }
       setShowImageModal(false);
       setTempImage(null);
       alert('Profile photo updated successfully!');
@@ -298,6 +334,26 @@ const ProfileSetting = ({ user, onLogout }) => {
             <div className="security-info">
               <p>Last password change: 30 days ago</p>
               <p>Two-factor authentication: <span className="status-disabled">Not enabled</span></p>
+            </div>
+          </div>
+
+          {/* Employment History Section */}
+          <div className="profile-section">
+            <h2>Employment History</h2>
+            <div className="history-timeline">
+              {employmentHistory.map((record, index) => (
+                <div key={record.id} className="timeline-item">
+                  <div className="timeline-marker"></div>
+                  <div className="timeline-content">
+                    <div className="history-header">
+                      <h3>{record.event}</h3>
+                      <span className="history-date">{new Date(record.date).toLocaleDateString()}</span>
+                    </div>
+                    <p className="history-details">{record.details}</p>
+                  </div>
+                  {index < employmentHistory.length - 1 && <div className="timeline-line"></div>}
+                </div>
+              ))}
             </div>
           </div>
         </div>

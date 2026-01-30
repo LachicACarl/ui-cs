@@ -67,6 +67,66 @@
   color: #f4c10f;
 }
 
+.filters-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.filter-select {
+  padding: 10px 15px;
+  border: 1px solid #d0d0d0;
+  background-color: #f9f9f9;
+  color: #1e3a5f;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.filter-select:hover {
+  border-color: #f4c10f;
+  background-color: #ffffff;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #f4c10f;
+  box-shadow: 0 0 5px rgba(244, 193, 15, 0.3);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-badge.active {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.inactive {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
 .records-count {
   color: #666666;
   font-size: 14px;
@@ -120,7 +180,8 @@
 }
 
 .view-btn,
-.edit-btn {
+.edit-btn,
+.delete-btn {
   background-color: #f4c10f;
   color: #1e3a5f;
   border: none;
@@ -138,6 +199,17 @@
   background-color: #e8b30f;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(244, 193, 15, 0.3);
+}
+
+.delete-btn {
+  background-color: #ff5252;
+  color: #ffffff;
+}
+
+.delete-btn:hover {
+  background-color: #ff1744;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.3);
 }
 
 .no-results {
@@ -268,6 +340,12 @@
   padding: 20px;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px 16px;
+}
+
 .detail-section p {
   color: #1e3a5f;
   margin: 12px 0;
@@ -315,6 +393,13 @@
   cursor: not-allowed;
 }
 
+.file-hint {
+  display: block;
+  margin-top: 6px;
+  color: #6c7a92;
+  font-size: 12px;
+}
+
 .modal-footer {
   display: flex;
   gap: 10px;
@@ -325,7 +410,8 @@
 
 .btn-cancel,
 .btn-submit,
-.btn-close {
+.btn-close,
+.btn-delete {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
@@ -355,6 +441,17 @@
   background-color: #e8b30f;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(244, 193, 15, 0.3);
+}
+
+.btn-delete {
+  background-color: #ff5252;
+  color: #ffffff;
+}
+
+.btn-delete:hover {
+  background-color: #ff1744;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 82, 82, 0.3);
 }
 
 @media (max-width: 768px) {

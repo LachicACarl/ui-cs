@@ -66,7 +66,6 @@ const UserManagement = ({ user, onLogout }) => {
       <div className="users-container">
         <div className="users-header">
           <h1>User Management</h1>
-          <button className="add-user-btn">+ Add New User</button>
         </div>
 
         <div className="users-stats">

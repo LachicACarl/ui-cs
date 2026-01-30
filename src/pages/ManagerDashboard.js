@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './ManagerDashboard.css';
 
 const ManagerDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('approvals');
+  const navigate = useNavigate();
 
   const pendingApprovals = [
     { employeeName: 'John Smith', department: 'Operations', requestTime: 'Jan 15, 2026 - 08:00 AM', correctedTime: 'Jan 15, 2026 - 07:00 AM', status: 'Pending' },

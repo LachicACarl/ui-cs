@@ -1,10 +1,35 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './FaceDetection.css';
+import { apiClient } from '../utils/authService';
 
 const FaceDetection = ({ user, onLogout }) => {
-  const handleScanClick = () => {
-    alert('Face Detection: Click to start scanning');
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (!user || user.userRole !== 'employee') {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const handleScanClick = async () => {
+    try {
+      const payload = {
+        employeeId: user?.employeeId,
+        method: 'face'
+      };
+
+      await apiClient.post('/attendance/check-in', payload);
+      alert('✅ Face check-in submitted. Please wait for verification.');
+    } catch (error) {
+      if (error?.response?.status === 401) {
+        onLogout();
+        navigate('/login');
+        return;
+      }
+      alert(error?.response?.data?.message || 'Face check-in failed.');
+    }
   };
 
   return (

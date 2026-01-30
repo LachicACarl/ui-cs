@@ -1,205 +1,247 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Navbar from '../components/Navbar';
 import './AttendanceManagement.css';
 
 const AttendanceManagement = ({ user, onLogout }) => {
-  const [month, setMonth] = useState('January');
-  const [attendanceData, setAttendanceData] = useState([
-    { id: 'E001', name: 'John Smith', date: '2026-01-21', timeIn: '08:30', timeOut: '17:45', status: 'Present', correctionRequested: false, correctionStatus: 'Pending' },
-    { id: 'E002', name: 'Sarah Johnson', date: '2026-01-21', timeIn: '08:15', timeOut: '17:30', status: 'Present', correctionRequested: false, correctionStatus: 'None' },
-    { id: 'E003', name: 'Mike Davis', date: '2026-01-21', timeIn: '09:00', timeOut: '17:00', status: 'Late', correctionRequested: true, correctionStatus: 'Approved' },
-    { id: 'E004', name: 'Emily Brown', date: '2026-01-21', timeIn: '08:45', timeOut: '17:15', status: 'Present', correctionRequested: true, correctionStatus: 'Pending' },
-    { id: 'E005', name: 'Robert Wilson', date: '2026-01-20', timeIn: 'Absent', timeOut: 'Absent', status: 'Absent', correctionRequested: false, correctionStatus: 'None' },
-  ]);
-
-  const [showCorrectionModal, setShowCorrectionModal] = useState(false);
+  const [records, setRecords] = useState([]);
+  const [search, setSearch] = useState('');
+  const [department, setDepartment] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [correctionType, setCorrectionType] = useState('');
-  const [correctionTime, setCorrectionTime] = useState('');
+  const [editCheckIn, setEditCheckIn] = useState('');
+  const [editCheckOut, setEditCheckOut] = useState('');
+  const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
 
-  const handleCorrection = (record) => {
-    setSelectedRecord(record);
-    setShowCorrectionModal(true);
+  const totals = useMemo(() => {
+    const totalEmployees = records.length;
+    const present = records.filter((r) => r.status === 'Present').length;
+    const absent = records.filter((r) => r.status === 'Absent').length;
+    return { totalEmployees, present, absent };
+  }, [records]);
+
+  const filteredRecords = useMemo(() => {
+    return records.filter((rec) => {
+      const term = search.toLowerCase();
+      const inSearch = !term ||
+        rec.name.toLowerCase().includes(term) ||
+        rec.department.toLowerCase().includes(term) ||
+        rec.status.toLowerCase().includes(term) ||
+        rec.id.toLowerCase().includes(term);
+
+      const deptOk = department === 'all' || rec.department === department;
+
+      const dateValue = rec.date ? new Date(rec.date) : null;
+      const startOk = startDate && dateValue ? dateValue >= new Date(startDate) : true;
+      const endOk = endDate && dateValue ? dateValue <= new Date(endDate) : true;
+
+      return inSearch && deptOk && startOk && endOk;
+    });
+  }, [records, search, department, startDate, endDate]);
+
+  const openEditModal = (rec) => {
+    setSelectedRecord(rec);
+    setEditCheckIn(rec.checkIn === '-' ? '' : rec.checkIn);
+    setEditCheckOut(rec.checkOut === '-' ? '' : rec.checkOut);
+    setEditModalOpen(true);
   };
 
-  const submitCorrection = () => {
-    if (!correctionType || !correctionTime) {
-      alert('Please fill all fields');
-      return;
-    }
-
-    setAttendanceData(attendanceData.map(record => 
-      record.id === selectedRecord.id 
-        ? { 
-            ...record, 
-            correctionRequested: true, 
-            correctionStatus: 'Pending',
-            [correctionType === 'timeIn' ? 'timeIn' : 'timeOut']: correctionTime
-          }
-        : record
-    ));
-
-    setShowCorrectionModal(false);
-    setCorrectionType('');
-    setCorrectionTime('');
+  const saveEdits = () => {
+    setRecords((prev) => prev.map((r) => r.id === selectedRecord.id ? {
+      ...r,
+      checkIn: editCheckIn || '-',
+      checkOut: editCheckOut || '-',
+      correctionStatus: 'Approved'
+    } : r));
+    setEditModalOpen(false);
     setSelectedRecord(null);
   };
 
-  const approveCorrection = (record) => {
-    setAttendanceData(attendanceData.map(r => 
-      r.id === record.id 
-        ? { ...r, correctionStatus: 'Approved' }
-        : r
-    ));
+  const setCorrectionStatus = (rec, status) => {
+    setRecords((prev) => prev.map((r) => r.id === rec.id ? { ...r, correctionStatus: status } : r));
+  };
+
+  const setIssueStatus = (rec, status) => {
+    const timestamp = new Date().toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    const note = status === 'Resolved'
+      ? `Resolved on ${timestamp}`
+      : rec.issueNote || 'Flagged for review';
+
+    setRecords((prev) => prev.map((r) => r.id === rec.id ? {
+      ...r,
+      issueStatus: status,
+      issueNote: note
+    } : r));
+  };
+
+  const exportReport = (format) => {
+    const filename = `attendance_export.${format.toLowerCase()}`;
+    console.log(`Exporting attendance as ${format}: ${filename}`);
+    alert(`Exporting attendance as ${format} format...`);
+    setExportDropdownOpen(false);
+  };
+
+  const rangeLabel = () => {
+    if (!startDate && !endDate) return 'Awaiting database date range';
+    const start = startDate ? new Date(startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'Start';
+    const end = endDate ? new Date(endDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) : 'End';
+    return `${start} to ${end}`;
   };
 
   return (
     <div className="attendance-page">
       <Navbar user={user} onLogout={onLogout} />
-      
+
       <div className="attendance-container">
-        <div className="attendance-header">
-          <h1>Attendance Management</h1>
-          <select value={month} onChange={(e) => setMonth(e.target.value)} className="month-select">
-            <option>January</option>
-            <option>February</option>
-            <option>March</option>
-            <option>April</option>
-            <option>May</option>
-            <option>June</option>
-            <option>July</option>
-            <option>August</option>
-            <option>September</option>
-            <option>October</option>
-            <option>November</option>
-            <option>December</option>
-          </select>
-        </div>
-
-        <div className="attendance-stats">
-          <div className="stat-card">
-            <span className="stat-label">Total Employees</span>
-            <span className="stat-value">{attendanceData.length}</span>
-          </div>
-          <div className="stat-card present">
-            <span className="stat-label">Present</span>
-            <span className="stat-value">{attendanceData.filter(a => a.status === 'Present').length}</span>
-          </div>
-          <div className="stat-card absent">
-            <span className="stat-label">Absent</span>
-            <span className="stat-value">{attendanceData.filter(a => a.status === 'Absent').length}</span>
-          </div>
-          <div className="stat-card late">
-            <span className="stat-label">Late</span>
-            <span className="stat-value">{attendanceData.filter(a => a.status === 'Late').length}</span>
+        <div className="header-row">
+          <div>
+            <h1>Attendance Management</h1>
+            <p className="subtitle">Track employee attendance and work hours</p>
           </div>
         </div>
 
-        <table className="attendance-table">
-          <thead>
-            <tr>
-              <th>Employee ID</th>
-              <th>Employee Name</th>
-              <th>Date</th>
-              <th>Time In</th>
-              <th>Time Out</th>
-              <th>Status</th>
-              <th>Correction Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attendanceData.map((record) => (
-              <tr key={`${record.id}-${record.date}`}>
-                <td>{record.id}</td>
-                <td>{record.name}</td>
-                <td>{record.date}</td>
-                <td className={record.correctionStatus === 'Approved' ? 'corrected' : ''}>{record.timeIn}</td>
-                <td className={record.correctionStatus === 'Approved' ? 'corrected' : ''}>{record.timeOut}</td>
-                <td>
-                  <span className={`status-badge ${record.status.toLowerCase()}`}>
-                    {record.status}
-                  </span>
-                </td>
-                <td>
-                  <span className={`correction-badge ${record.correctionStatus.toLowerCase()}`}>
-                    {record.correctionStatus}
-                  </span>
-                </td>
-                <td>
-                  {user?.userRole === 'admin' ? (
-                    <>
-                      {record.correctionStatus === 'Pending' ? (
-                        <button 
-                          className="approve-btn"
-                          onClick={() => approveCorrection(record)}
-                        >
-                          Approve
-                        </button>
-                      ) : (
-                        <button 
-                          className="correct-btn"
-                          onClick={() => handleCorrection(record)}
-                        >
-                          Correct
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <button 
-                      className="correct-btn"
-                      onClick={() => handleCorrection(record)}
-                      disabled={record.correctionStatus === 'Approved'}
-                    >
-                      Request Correction
-                    </button>
-                  )}
-                </td>
+        <div className="cards-row">
+          <div className="summary-card">
+            <div className="card-label">Total Employees</div>
+            <div className="card-value">{totals.totalEmployees}</div>
+            <div className="card-icon">👥</div>
+          </div>
+          <div className="summary-card">
+            <div className="card-label">Present</div>
+            <div className="card-value green">{totals.present}</div>
+            <div className="card-icon status-dot green"></div>
+          </div>
+          <div className="summary-card">
+            <div className="card-label">Absent</div>
+            <div className="card-value red">{totals.absent}</div>
+            <div className="card-icon status-dot red"></div>
+          </div>
+        </div>
+
+        <div className="filters-bar compact">
+          <div className="range-label">Attendance Records - {rangeLabel()}</div>
+          <div className="search-actions">
+            <div className="search-field">
+              <input
+                aria-label="Search attendance"
+                type="text"
+                placeholder="Search by name, department, or status..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <button className="search-btn" aria-label="Search" type="button">
+                <span>🔍</span>
+              </button>
+            </div>
+            <div className="export-dropdown-wrapper">
+              <button className="export-pill" onClick={() => setExportDropdownOpen(!exportDropdownOpen)}>
+                <span className="download-icon">⬇</span>
+                Export
+              </button>
+              {exportDropdownOpen && (
+                <div className="export-dropdown-menu">
+                  <button onClick={() => exportReport('PDF')}>Export as .pdf</button>
+                  <button onClick={() => exportReport('XLSX')}>Export as .xlsx</button>
+                  <button onClick={() => exportReport('CSV')}>Export as .csv</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="table-wrapper">
+          <table className="attendance-table">
+            <thead>
+              <tr>
+                <th>Employee Name</th>
+                <th>Department</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Corrected Time</th>
+                <th>Issue Status</th>
+                <th>Resolution Notes</th>
+                <th>Status</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredRecords.length === 0 && (
+                <tr>
+                  <td colSpan="9" className="empty-state">No attendance records yet. Connect to the database to load data.</td>
+                </tr>
+              )}
+              {filteredRecords.map((record) => (
+                <tr key={`${record.id}-${record.date}`}>
+                  <td>{record.name}</td>
+                  <td>{record.department}</td>
+                  <td>{record.checkIn}</td>
+                  <td>{record.checkOut}</td>
+                  <td>{record.correctedTime}</td>
+                  <td>
+                    <span className={`issue-pill ${(record.issueStatus || 'Open').toLowerCase()}`}>
+                      {record.issueStatus || 'Open'}
+                    </span>
+                  </td>
+                  <td className="resolution-note">{record.issueNote || 'No notes yet'}</td>
+                  <td>
+                    <span className={`status-pill ${record.status?.toLowerCase()}`}>
+                      {record.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button className="approve" onClick={() => setCorrectionStatus(record, 'Approved')}>Approve</button>
+                      <button className="deny" onClick={() => setCorrectionStatus(record, 'Denied')}>Deny</button>
+                      <button className="resolve" onClick={() => setIssueStatus(record, record.issueStatus === 'Resolved' ? 'Open' : 'Resolved')}>
+                        {record.issueStatus === 'Resolved' ? 'Reopen' : 'Resolve'}
+                      </button>
+                      <button className="edit" onClick={() => openEditModal(record)}>Edit</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {showCorrectionModal && (
-        <div className="modal-overlay" onClick={() => setShowCorrectionModal(false)}>
+      {editModalOpen && (
+        <div className="modal-overlay" onClick={() => setEditModalOpen(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Request Time Correction</h2>
-              <button className="close-btn" onClick={() => setShowCorrectionModal(false)}>×</button>
+              <h2>Edit Time In/Out</h2>
+              <button className="close-btn" onClick={() => setEditModalOpen(false)}>×</button>
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Employee: {selectedRecord?.name}</label>
+                <label>Employee</label>
+                <div className="readonly">{selectedRecord?.name}</div>
               </div>
               <div className="form-group">
-                <label>Date: {selectedRecord?.date}</label>
+                <label>Date</label>
+                <div className="readonly">{selectedRecord?.date}</div>
               </div>
-              <div className="form-group">
-                <label>Correction Type</label>
-                <select 
-                  value={correctionType}
-                  onChange={(e) => setCorrectionType(e.target.value)}
-                  className="form-input"
-                >
-                  <option value="">Select Type</option>
-                  <option value="timeIn">Time In</option>
-                  <option value="timeOut">Time Out</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Corrected Time</label>
-                <input
-                  type="time"
-                  value={correctionTime}
-                  onChange={(e) => setCorrectionTime(e.target.value)}
-                  className="form-input"
-                />
+              <div className="form-group inline">
+                <div>
+                  <label>Time In</label>
+                  <input type="text" value={editCheckIn} onChange={(e) => setEditCheckIn(e.target.value)} placeholder="08:00 AM" />
+                </div>
+                <div>
+                  <label>Time Out</label>
+                  <input type="text" value={editCheckOut} onChange={(e) => setEditCheckOut(e.target.value)} placeholder="05:00 PM" />
+                </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn-cancel" onClick={() => setShowCorrectionModal(false)}>Cancel</button>
-              <button className="btn-submit" onClick={submitCorrection}>Submit</button>
+              <button className="btn secondary" onClick={() => setEditModalOpen(false)}>Cancel</button>
+              <button className="btn primary" onClick={saveEdits}>Save</button>
             </div>
           </div>
         </div>
