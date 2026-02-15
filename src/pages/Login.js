@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
-import { loginUser } from '../utils/authService';
+import { loginUser, logAudit } from '../utils/authService';
+import { apiClient } from '../utils/authService';
 
 const Login = ({ setUser }) => {
   const [employeeId, setEmployeeId] = useState('');
@@ -11,27 +12,75 @@ const Login = ({ setUser }) => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetMessage, setResetMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [requiresPassword, setRequiresPassword] = useState(true);
+  const [employeeChecked, setEmployeeChecked] = useState(false);
   const navigate = useNavigate();
+
+  const checkEmployeeId = async (id) => {
+    if (!id.trim()) {
+      setEmployeeChecked(false);
+      setRequiresPassword(true);
+      return;
+    }
+
+    try {
+      const { data } = await apiClient.post('/auth/check-employee', {
+        employeeId: id.trim()
+      });
+
+      if (data?.found) {
+        setRequiresPassword(data.requiresPassword);
+        setEmployeeChecked(true);
+        setErrorMessage('');
+      }
+    } catch (err) {
+      setEmployeeChecked(false);
+      setRequiresPassword(true);
+    }
+  };
+
+  const handleEmployeeIdChange = (e) => {
+    const id = e.target.value;
+    setEmployeeId(id);
+    checkEmployeeId(id);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setIsLoading(true);
 
-    if (!employeeId || !password) {
-      setErrorMessage('Please enter both Employee ID and Password');
+    if (!employeeId) {
+      setErrorMessage('Please enter Employee ID');
       setIsLoading(false);
       return;
     }
 
-    const result = await loginUser(employeeId, password);
+    if (requiresPassword && !password) {
+      setErrorMessage('Please enter Password');
+      setIsLoading(false);
+      return;
+    }
+
+    // For employees, send without password. For admin/manager, send with password
+    const result = await loginUser(employeeId, requiresPassword ? password : '');
 
     if (result.success) {
       setUser(result.user);
       
-      // Redirect based on role
+      // Log successful login
+      await logAudit('LOGIN', { 
+        employeeId: result.user.employeeId, 
+        role: result.user.userRole,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Redirect based on role and mode
       setTimeout(() => {
-        if (result.user.userRole === 'super_admin' || result.user.userRole === 'admin') {
+        // If employee and no password (QR attendance mode)
+        if (result.user.userRole === 'employee' && result.user.isAttendanceMode) {
+          navigate('/attendance-scanner');
+        } else if (result.user.userRole === 'super_admin' || result.user.userRole === 'admin') {
           navigate('/admin');
         } else if (result.user.userRole === 'manager') {
           navigate('/manager');
@@ -67,9 +116,14 @@ const Login = ({ setUser }) => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <div className="login-logo">🔐</div>
+        <div className="login-logo-circle">
+          <div className="logo-content">
+            {/* Add your logo image here: <img src="/path/to/logo.png" alt="Logo" /> */}
+            <div className="pinwheel-icon">⚙</div>
+          </div>
+        </div>
         <h2>Login</h2>
-        <p>Please Enter your ID and Password</p>
+        <p>{requiresPassword ? 'Please Enter your ID and Password' : 'Enter your Employee ID for QR Attendance'}</p>
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -77,26 +131,32 @@ const Login = ({ setUser }) => {
               type="text"
               placeholder="Enter Employee ID"
               value={employeeId}
-              onChange={(e) => setEmployeeId(e.target.value)}
+              onChange={handleEmployeeIdChange}
               disabled={isLoading}
               className="login-input"
+              autoFocus
             />
+            {employeeChecked && !requiresPassword && (
+              <p className="helper-text">✅ Employee ID found - Password not required for QR attendance</p>
+            )}
           </div>
 
-          <div className="form-group">
-            <input
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-              className="login-input"
-            />
-          </div>
+          {requiresPassword && (
+            <div className="form-group">
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                className="login-input"
+              />
+            </div>
+          )}
 
           <button 
             type="submit" 
-            disabled={isLoading}
+            disabled={isLoading || (requiresPassword && !employeeId) || (requiresPassword && !password)}
             className="login-btn"
           >
             {isLoading ? 'Signing In...' : 'Sign In'}

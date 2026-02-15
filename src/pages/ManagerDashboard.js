@@ -1,27 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './ManagerDashboard.css';
+import { apiClient, logAudit } from '../utils/authService';
 
 const ManagerDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('approvals');
   const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
 
-  const pendingApprovals = [
-    { employeeName: 'John Smith', department: 'Operations', requestTime: 'Jan 15, 2026 - 08:00 AM', correctedTime: 'Jan 15, 2026 - 07:00 AM', status: 'Pending' },
-    { employeeName: 'Sarah Williams', department: 'Operations', requestTime: 'Jan 14, 2026 - 09:30 AM', correctedTime: 'Jan 14, 2026 - 08:45 AM', status: 'Pending' },
-  ];
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchEmployees();
+  }, []);
 
-  const approvedRequests = [
-    { employeeName: 'Michael Brown', department: 'Operations', approvedDate: 'Jan 13, 2026', status: 'Approved' },
-    { employeeName: 'Jennifer Davis', department: 'Maintenance', approvedDate: 'Jan 12, 2026', status: 'Approved' },
-  ];
+  const fetchDashboardStats = async () => {
+    try {
+      const { data } = await apiClient.get('/dashboard/stats');
+      setStats(data?.stats || null);
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+    }
+  };
+
+  const [employees, setEmployees] = useState([]);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [approvedRequests, setApprovedRequests] = useState([]);
+
+  const fetchEmployees = async () => {
+    try {
+      const { data } = await apiClient.get('/employees');
+      setEmployees(data?.employees || []);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  const handleApprove = async (index) => {
+    const item = pendingApprovals[index];
+    const approvedDate = new Date().toLocaleDateString('en-US');
+    setPendingApprovals((prev) => prev.filter((_, idx) => idx !== index));
+    setApprovedRequests((prev) => [
+      { employeeName: item.employeeName, department: item.department, approvedDate, status: 'Approved' },
+      ...prev
+    ]);
+    await logAudit('ATTENDANCE_CORRECTION_APPROVED', {
+      employeeName: item.employeeName,
+      department: item.department,
+      correctedTime: item.correctedTime
+    });
+  };
+
+  const handleDeny = async (index) => {
+    const item = pendingApprovals[index];
+    setPendingApprovals((prev) => prev.filter((_, idx) => idx !== index));
+    await logAudit('ATTENDANCE_CORRECTION_DENIED', {
+      employeeName: item.employeeName,
+      department: item.department,
+      correctedTime: item.correctedTime
+    });
+  };
 
   const departmentStats = [
-    { label: 'Total Employees', value: '85' },
-    { label: 'Present Today', value: '78' },
-    { label: 'On Leave', value: '5' },
-    { label: 'Late Arrivals', value: '2' },
+    { label: 'Total Employees', value: stats?.total_employees || '0' },
+    { label: 'Present Today', value: stats?.today_present || '0' },
+    { label: 'On Leave', value: '0' },
+    { label: 'Pending Approvals', value: stats?.pending_salaries || '0' },
   ];
 
   const renderTabContent = () => {
@@ -49,8 +93,8 @@ const ManagerDashboard = ({ user, onLogout }) => {
                   <td>{item.correctedTime}</td>
                   <td><span className="status-badge pending">{item.status}</span></td>
                   <td>
-                    <button className="action-btn approve">Approve</button>
-                    <button className="action-btn deny">Deny</button>
+                    <button className="action-btn approve" onClick={() => handleApprove(idx)}>Approve</button>
+                    <button className="action-btn deny" onClick={() => handleDeny(idx)}>Deny</button>
                   </td>
                 </tr>
               ))}

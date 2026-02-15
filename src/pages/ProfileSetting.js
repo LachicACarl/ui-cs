@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import './ProfileSetting.css';
+import { apiClient } from '../utils/authService';
 
 const ProfileSetting = ({ user, onLogout, setUser }) => {
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(profileData);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showEmailConfirmModal, setShowEmailConfirmModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -70,10 +72,25 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
     setEditData(profileData);
   };
 
-  const handleSaveChanges = () => {
-    setProfileData(editData);
-    setIsEditing(false);
-    alert('Profile updated successfully!');
+  const handleSaveChanges = async () => {
+    try {
+      const { data } = await apiClient.put('/users/profile', {
+        name: `${editData.firstName} ${editData.lastName}`,
+        email: editData.email,
+        department: editData.department
+      });
+
+      if (data?.success) {
+        setProfileData(editData);
+        setIsEditing(false);
+        alert('Profile updated successfully!');
+      } else {
+        alert(data?.message || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      alert(error?.response?.data?.message || 'Failed to update profile');
+    }
   };
 
   const handleInputChange = (e) => {
@@ -96,17 +113,32 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
     }
   };
 
-  const handleSaveImage = () => {
+  const handleSaveImage = async () => {
     if (tempImage) {
-      setProfileImage(tempImage);
-      localStorage.setItem('userProfileImage', tempImage);
-      // Update user object with new profile image
-      if (setUser && user) {
-        setUser({ ...user, profileImage: tempImage });
+      try {
+        // Convert base64 to blob
+        const response = await fetch(tempImage);
+        const blob = await response.blob();
+        
+        const formData = new FormData();
+        formData.append('photo', blob, 'profile.jpg');
+
+        const { data } = await apiClient.post('/users/upload-photo', formData);
+        if (data?.imageUrl) {
+          setProfileImage(data.imageUrl);
+          setShowImageModal(false);
+          setTempImage(null);
+          if (setUser) {
+            setUser(prev => ({ ...prev, profileImage: data.imageUrl }));
+          }
+          alert('Profile photo updated successfully!');
+        } else {
+          alert(data?.message || 'Failed to upload photo');
+        }
+      } catch (error) {
+        console.error('Photo upload error:', error);
+        alert(error?.response?.data?.message || 'Failed to upload photo');
       }
-      setShowImageModal(false);
-      setTempImage(null);
-      alert('Profile photo updated successfully!');
     }
   };
 
@@ -133,8 +165,9 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
       alert('New passwords do not match');
       return;
     }
-    alert('Password changed successfully!');
+    // Show email confirmation modal
     setShowChangePasswordModal(false);
+    setShowEmailConfirmModal(true);
     setPasswordData({
       currentPassword: '',
       newPassword: '',
@@ -158,25 +191,18 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
         </div>
 
         <div className="profile-main">
-          {/* Profile Picture Section */}
-          <div className="profile-picture-section">
-            <div className="profile-avatar-container">
-              <div className="profile-avatar-large">
-                {profileImage ? (
-                  <img src={profileImage} alt="Profile" className="profile-image" />
-                ) : (
-                  user?.employeeName?.substring(0, 2).toUpperCase() || 'GC'
-                )}
-              </div>
-              <button className="btn-change-photo" onClick={handleChangePhoto}>
-                Change Photo
-              </button>
+          {/* Profile Picture Section - Minimal */}
+          <div className="profile-picture-section-compact">
+            <div className="profile-avatar-small">
+              {profileImage ? (
+                <img src={profileImage} alt="Profile" className="profile-image-small" />
+              ) : (
+                user?.employeeName?.substring(0, 2).toUpperCase() || 'GC'
+              )}
             </div>
-            <div className="avatar-info">
-              <p className="employee-name">{profileData.firstName} {profileData.lastName}</p>
-              <p className="employee-id">Employee ID: EMP001</p>
-              <p className="employee-position">{profileData.position}</p>
-            </div>
+            <button className="btn-change-photo-compact" onClick={handleChangePhoto}>
+              Change Photo
+            </button>
           </div>
 
           {/* Personal Information Section */}
@@ -422,6 +448,29 @@ const ProfileSetting = ({ user, onLogout, setUser }) => {
               >
                 Update Password
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Email Confirmation Modal */}
+      {showEmailConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowEmailConfirmModal(false)}>
+          <div className="modal-content email-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowEmailConfirmModal(false)}>×</button>
+            <div className="modal-body text-center">
+              <div className="email-icon">📧</div>
+              <h2>Check your email</h2>
+              <p>We've sent an email to <strong>{profileData.email}</strong> to confirm your password change.</p>
+              <button 
+                className="btn-submit btn-gotit"
+                onClick={() => setShowEmailConfirmModal(false)}
+              >
+                Got it
+              </button>
+              <p className="resend-text">
+                Don't receive the email? <span className="resend-link">Resend</span>
+              </p>
             </div>
           </div>
         </div>

@@ -1,49 +1,57 @@
-# Gracewell NEXUS - React Version
+# Gracewell NEXUS - Full Stack Attendance System
 
-This is a React.js version of the Gracewell NEXUS Employee Management System with role-based access control.
+Complete Employee Management System with **Backend API**, JWT authentication, QR/Face attendance, and audit logging.
 
-## Installation
+## 🚀 Quick Start
+
+### 1. Backend Setup
 
 ```bash
+cd server
 npm install
-```
-
-## Running the Application
-
-```bash
 npm start
 ```
 
-The app will open at http://localhost:3000
+Backend runs on `http://localhost:4000`
 
-## Features
+### 2. Frontend Setup
 
-- **Role-Based Access Control**: Admin, Manager, and Employee roles
-- **Authentication**: Simple login system with role-based redirects
-- **Admin Dashboard**: System administration and management controls
-- **Manager Dashboard**: Time correction approvals and department oversight
-- **Employee Dashboard**: Attendance tracking and salary information
-- **Face Detection**: Employee check-in system
-- **Responsive Design**: Works on desktop and mobile devices
+```bash
+npm install
+npm start
+```
 
-## Test Credentials
+Frontend runs on `http://localhost:3000`
 
-### Admin
-- **ID**: `admin`
-- **Password**: any value
+## ✨ Features
 
-### Manager
-- **ID**: `manager`
-- **Password**: any value
+### ✅ Implemented
+- **JWT Authentication** (Backend-issued tokens)
+- **Role-Based Access Control** (Admin, Manager, Employee)
+- **QR Code Attendance** (Webcam scanning)
+- **Face Capture** (Live webcam with image upload)
+- **Audit Logging** (Login, logout, attendance, salary actions)
+- **CSV Export** (Salary records)
+- **SQLite Database** (WAL mode)
+- **Supabase Integration** (Optional image storage)
 
-### Employee
-- **ID**: `employee`
-- **Password**: any value
+### 📋 Core Modules
+1. **Authentication & User Access**
+2. **Attendance Monitoring** (QR-based + Face capture)
+3. **Salary Tracking** (Admin add/release, Manager view, Employee view own)
+4. **Employee Records Management**
+5. **User Management** (Admin-only)
+6. **Audit Trail**
 
-### Alternate Credentials
-- Admin IDs: A001, A002, A003
-- Manager IDs: M001, M002, M003
-- Employee IDs: E001, E002, etc.
+## 🔐 Test Credentials
+
+| Employee ID | Password | Role |
+|------------|----------|------|
+| SA001 | admin123 | Super Admin |
+| A001 | admin123 | Admin |
+| M001 | manager123 | Manager |
+| E001 | emp123 | Employee |
+| E002 | emp123 | Employee |
 
 ## Project Structure
 

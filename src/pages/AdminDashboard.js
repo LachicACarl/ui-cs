@@ -1,10 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './AdminDashboard.css';
+import { apiClient } from '../utils/authService';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [dateFilter, setDateFilter] = useState('today');
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [stats, setStats] = useState(null);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardStats();
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const { data } = await apiClient.get('/employees');
+      setEmployees(data?.employees || []);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  const fetchDashboardStats = async () => {
+    try {
+      const { data } = await apiClient.get('/dashboard/stats');
+      setStats(data?.stats || null);
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+    }
+  };
 
   const formattedDate = selectedDate.toLocaleDateString('en-US', {
     weekday: 'long',
@@ -80,10 +110,60 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
 
         <div className="dashboard-grid">
-          {/* Charts will be populated from database */}
-          <div className="placeholder-message">
-            <p>📊 Dashboard charts will be populated from database</p>
-            <p style={{ fontSize: '12px', color: '#bbb', marginTop: '8px' }}>Ready for database integration</p>
+          <div className="charts-container">
+            <div className="chart-card">
+              <h3>Attendance Status</h3>
+              {stats && (
+                <Doughnut 
+                  data={{
+                    labels: ['Present', 'Absent'],
+                    datasets: [{
+                      label: 'Employee Attendance',
+                      data: [stats.today_present || 0, (stats.total_employees || 0) - (stats.today_present || 0)],
+                      backgroundColor: ['#4CAF50', '#FF6B6B'],
+                      borderColor: ['#fff', '#fff'],
+                      borderWidth: 2,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                      }
+                    }
+                  }}
+                />
+              )}
+            </div>
+
+            <div className="chart-card">
+              <h3>Salary Status</h3>
+              {stats && (
+                <Doughnut 
+                  data={{
+                    labels: ['Pending', 'Released'],
+                    datasets: [{
+                      label: 'Salary Distribution',
+                      data: [stats.pending_amount || 0, stats.released_amount || 0],
+                      backgroundColor: ['#FFC107', '#2196F3'],
+                      borderColor: ['#fff', '#fff'],
+                      borderWidth: 2,
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                      legend: {
+                        position: 'bottom',
+                      }
+                    }
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

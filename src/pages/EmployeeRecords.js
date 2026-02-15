@@ -1,31 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './EmployeeRecords.css';
+import { apiClient } from '../utils/authService';
 
 const EmployeeRecords = ({ user, onLogout }) => {
+  // RBAC per Gracewell NEXUS: Admin can edit. Manager can view. Employee read-only.
+  const canEditRecords = user?.userRole === 'admin' || user?.userRole === 'super_admin';
+  const canViewRecords = ['admin', 'super_admin', 'manager'].includes(user?.userRole);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [departmentFilter, setDepartmentFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [employees, setEmployees] = useState([
-    { id: 'E001', name: 'John Smith', position: 'Senior Developer', department: 'IT', status: 'Active', joinDate: '2020-01-15', email: 'john.smith@gracewell.com', phone: '555-0101' },
-    { id: 'E002', name: 'Sarah Johnson', position: 'HR Manager', department: 'HR', status: 'Active', joinDate: '2021-03-20', email: 'sarah.johnson@gracewell.com', phone: '555-0102' },
-    { id: 'E003', name: 'Mike Davis', position: 'Project Manager', department: 'PM', status: 'Active', joinDate: '2019-06-10', email: 'mike.davis@gracewell.com', phone: '555-0103' },
-    { id: 'E004', name: 'Emily Brown', position: 'UI/UX Designer', department: 'Design', status: 'Active', joinDate: '2022-02-14', email: 'emily.brown@gracewell.com', phone: '555-0104' },
-    { id: 'E005', name: 'Robert Wilson', position: 'Business Analyst', department: 'Business', status: 'Inactive', joinDate: '2021-09-01', email: 'robert.wilson@gracewell.com', phone: '555-0105' },
-    { id: 'E006', name: 'Lisa Anderson', position: 'Junior Developer', department: 'IT', status: 'Active', joinDate: '2023-01-10', email: 'lisa.anderson@gracewell.com', phone: '555-0106' },
-    { id: 'E007', name: 'James Martinez', position: 'Accountant', department: 'Finance', status: 'Active', joinDate: '2020-11-05', email: 'james.martinez@gracewell.com', phone: '555-0107' },
-    { id: 'E008', name: 'Jennifer Taylor', position: 'Marketing Specialist', department: 'Marketing', status: 'Active', joinDate: '2022-05-15', email: 'jennifer.taylor@gracewell.com', phone: '555-0108' },
-  ]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const normalizeRole = (value) => {
+    const role = (value || '').toLowerCase();
+    if (['super_admin', 'admin', 'manager', 'employee'].includes(role)) {
+      return role;
+    }
+    return 'employee';
+  };
+
+  const normalizeStatus = (value) => {
+    if (!value) return 'active';
+    return String(value).toLowerCase() === 'inactive' ? 'inactive' : 'active';
+  };
+
+  const formatStatus = (value) => {
+    return String(value || 'active').toLowerCase() === 'inactive' ? 'Inactive' : 'Active';
+  };
+
+  const parseName = (fullName) => {
+    if (!fullName) return { firstName: '', middleName: '', lastName: '' };
+    
+    const parts = fullName.trim().split(/\s+/);
+    
+    if (parts.length === 1) {
+      return { firstName: parts[0], middleName: '', lastName: '' };
+    } else if (parts.length === 2) {
+      return { firstName: parts[0], middleName: '', lastName: parts[1] };
+    } else {
+      // 3 or more parts: first, middle(s), last
+      return {
+        firstName: parts[0],
+        middleName: parts.slice(1, -1).join(' '),
+        lastName: parts[parts.length - 1]
+      };
+    }
+  };
+
+  // Fetch employees from backend
+  useEffect(() => {
+    fetchEmployees();
+  }, [departmentFilter, statusFilter]);
+
+  const fetchEmployees = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (departmentFilter !== 'All') params.append('department', departmentFilter);
+      if (statusFilter !== 'All') params.append('status', statusFilter);
+
+      const { data } = await apiClient.get(`/employees?${params.toString()}`);
+      
+      const transformed = (data.employees || []).map(e => ({
+        id: e.employee_id,
+        name: e.name,
+        position: e.position || e.role,
+        department: e.department || 'N/A',
+        status: formatStatus(e.status),
+        joinDate: e.created_at ? e.created_at.split('T')[0] : '',
+        email: e.email,
+        phone: e.phone || e.contact_number || '555-0000'
+      }));
+      
+      setEmployees(transformed);
+    } catch (error) {
+      console.error('Failed to fetch employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [showViewModal, setShowViewModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrPayload, setQrPayload] = useState({ employeeId: '', qrImageUrl: '' });
   const [addStep, setAddStep] = useState(1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [newEmployee, setNewEmployee] = useState({
     name: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
     contactNumber: '',
     address: '',
     email: '',
@@ -67,17 +137,32 @@ const EmployeeRecords = ({ user, onLogout }) => {
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (!editFormData.name || !editFormData.position || !editFormData.email) {
       alert('Please fill all required fields');
       return;
     }
 
-    setEmployees(employees.map(emp => 
-      emp.id === editFormData.id ? editFormData : emp
-    ));
-    setShowEditModal(false);
-    setSelectedEmployee(null);
+    try {
+      const { data } = await apiClient.put(`/employees/${editFormData.id}`, {
+        name: editFormData.name,
+        email: editFormData.email,
+        role: normalizeRole(editFormData.position),
+        department: editFormData.department,
+        status: normalizeStatus(editFormData.status)
+      });
+
+      if (data?.success) {
+        await fetchEmployees();
+        setShowEditModal(false);
+        setSelectedEmployee(null);
+      } else {
+        alert(data?.message || 'Failed to update employee');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      alert('Failed to update employee');
+    }
   };
 
   const validateAddStepOne = () => {
@@ -98,50 +183,91 @@ const EmployeeRecords = ({ user, onLogout }) => {
     setAddStep(1);
   };
 
-  const handleAddEmployee = () => {
-    if (!newEmployee.employeeId || !newEmployee.position || !newEmployee.department || !newEmployee.joinDate || !newEmployee.salary) {
+  const handleNameChange = (e) => {
+    const fullName = e.target.value;
+    const { firstName, middleName, lastName } = parseName(fullName);
+    setNewEmployee({
+      ...newEmployee,
+      name: fullName,
+      firstName,
+      middleName,
+      lastName
+    });
+  };
+
+  const handleAddEmployee = async () => {
+    if (!newEmployee.employeeId || !newEmployee.position || !newEmployee.department || !newEmployee.joinDate || !newEmployee.name || !newEmployee.email) {
       alert('Please fill all required fields on this step.');
       return;
     }
 
-    const nextId = newEmployee.employeeId.trim() || `E${String(employees.length + 1).padStart(3, '0')}`;
-    const newRecord = {
-      id: nextId,
-      name: newEmployee.name,
-      position: newEmployee.position,
-      department: newEmployee.department,
-      status: newEmployee.status || 'Active',
-      joinDate: newEmployee.joinDate,
-      email: newEmployee.email,
-      phone: newEmployee.contactNumber,
-      salary: newEmployee.salary,
-    };
+    try {
+      const { data } = await apiClient.post('/employees', {
+        employeeId: newEmployee.employeeId.trim(),
+        name: newEmployee.name,
+        email: newEmployee.email,
+        role: 'employee', // Set role as 'employee' - position is separate
+        department: newEmployee.department,
+        position: newEmployee.position, // Send position separately
+        phone: newEmployee.phone || newEmployee.contactNumber // Send phone separately
+      });
 
-    setEmployees([...employees, newRecord]);
-    setShowAddModal(false);
-    setAddStep(1);
-    setNewEmployee({
-      name: '',
-      contactNumber: '',
-      address: '',
-      email: '',
-      birthdate: '',
-      idPhotoName: '',
-      employeeId: '',
-      position: '',
-      department: '',
-      joinDate: '',
-      status: 'Active',
-      salary: '',
-      phone: ''
-    });
+      if (data?.success) {
+        await fetchEmployees();
+        setShowAddModal(false);
+        setAddStep(1);
+        setNewEmployee({
+          name: '',
+          contactNumber: '',
+          address: '',
+          email: '',
+          birthdate: '',
+          idPhotoName: '',
+          employeeId: '',
+          position: '',
+          department: '',
+          joinDate: '',
+          status: 'Active',
+          salary: '',
+          phone: ''
+        });
+        const qrImageUrl = data.qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(newEmployee.employeeId.trim())}`;
+        setQrPayload({ employeeId: newEmployee.employeeId.trim(), qrImageUrl });
+        setShowQrModal(true);
+      } else {
+        alert(data?.message || 'Failed to add employee');
+      }
+    } catch (error) {
+      console.error('Add employee error:', error);
+      alert(error?.response?.data?.message || 'Failed to add employee');
+    }
   };
 
-  const handleDeactivateEmployee = (id) => {
+  const handleDeactivateEmployee = async (id) => {
     if (window.confirm('Deactivate this employee? They will remain in the list but marked as Inactive.')) {
-      setEmployees(employees.map(emp => emp.id === id ? { ...emp, status: 'Inactive' } : emp));
-      setShowViewModal(false);
-      alert('Employee marked as inactive');
+      try {
+        const employee = employees.find(e => e.id === id);
+        const { data } = await apiClient.put(`/employees/${id}`, {
+          name: employee.name,
+          email: employee.email,
+          role: 'employee',
+          department: employee.department,
+          status: 'inactive',
+          position: employee.position,
+          phone: employee.phone
+        });
+
+        if (data?.success) {
+          await fetchEmployees();
+          setShowViewModal(false);
+          alert('Employee marked as inactive');
+        } else {
+          alert(data?.message || 'Failed to deactivate employee');
+        }
+      } catch (error) {
+        console.error('Deactivate error:', error);
+        alert('Failed to deactivate employee');
+      }
     }
   };
 
@@ -340,12 +466,16 @@ const EmployeeRecords = ({ user, onLogout }) => {
               </div>
               <div className="form-group">
                 <label>Department</label>
-                <input
-                  type="text"
+                <select
                   value={editFormData.department}
                   onChange={(e) => setEditFormData({...editFormData, department: e.target.value})}
                   className="form-input"
-                />
+                >
+                  <option value="">Select department</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Operations">Operations</option>
+                  <option value="IT">IT</option>
+                </select>
               </div>
               <div className="form-group">
                 <label>Email *</label>
@@ -390,9 +520,39 @@ const EmployeeRecords = ({ user, onLogout }) => {
                     <input
                       type="text"
                       value={newEmployee.name}
-                      onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                      onChange={handleNameChange}
                       className="form-input"
-                      placeholder="Enter full name"
+                      placeholder="Enter first middle last name"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      value={newEmployee.firstName}
+                      readOnly
+                      className="form-input"
+                      style={{backgroundColor: '#f0f0f0'}}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Middle Name</label>
+                    <input
+                      type="text"
+                      value={newEmployee.middleName}
+                      readOnly
+                      className="form-input"
+                      style={{backgroundColor: '#f0f0f0'}}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      value={newEmployee.lastName}
+                      readOnly
+                      className="form-input"
+                      style={{backgroundColor: '#f0f0f0'}}
                     />
                   </div>
                   <div className="form-group">
@@ -463,16 +623,6 @@ const EmployeeRecords = ({ user, onLogout }) => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Position *</label>
-                    <input
-                      type="text"
-                      value={newEmployee.position}
-                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
-                      className="form-input"
-                      placeholder="e.g. Truck Driver"
-                    />
-                  </div>
-                  <div className="form-group">
                     <label>Department *</label>
                     <select
                       value={newEmployee.department}
@@ -480,13 +630,37 @@ const EmployeeRecords = ({ user, onLogout }) => {
                       className="form-input"
                     >
                       <option value="">Select department</option>
-                      <option>IT</option>
-                      <option>HR</option>
-                      <option>PM</option>
-                      <option>Design</option>
-                      <option>Business</option>
-                      <option>Finance</option>
-                      <option>Marketing</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Operations">Operations</option>
+                      <option value="IT">IT</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Position *</label>
+                    <select
+                      value={newEmployee.position}
+                      onChange={(e) => setNewEmployee({...newEmployee, position: e.target.value})}
+                      className="form-input"
+                      disabled={!newEmployee.department}
+                    >
+                      <option value="">Select position</option>
+                      {newEmployee.department === 'Finance' && (
+                        <option value="Finance Head">Finance Head</option>
+                      )}
+                      {newEmployee.department === 'Operations' && (
+                        <>
+                          <option value="Operations Head">Operations Head</option>
+                          <option value="Trucker">Trucker</option>
+                          <option value="Porter">Porter</option>
+                        </>
+                      )}
+                      {newEmployee.department === 'IT' && (
+                        <>
+                          <option value="IT Head">IT Head</option>
+                          <option value="Developer">Developer</option>
+                          <option value="IT Support">IT Support</option>
+                        </>
+                      )}
                     </select>
                   </div>
                   <div className="form-group">
@@ -536,6 +710,28 @@ const EmployeeRecords = ({ user, onLogout }) => {
                   <button className="btn-submit" onClick={handleAddEmployee}>Add Employee</button>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showQrModal && (
+        <div className="modal-overlay" onClick={() => setShowQrModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Employee QR Code</h2>
+              <button className="close-btn" onClick={() => setShowQrModal(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center' }}>
+              <p>Employee ID: <strong>{qrPayload.employeeId}</strong></p>
+              {qrPayload.qrImageUrl && (
+                <img src={qrPayload.qrImageUrl} alt="Employee QR Code" style={{ width: 220, height: 220 }} />
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn-submit" onClick={() => window.open(qrPayload.qrImageUrl, '_blank', 'noopener,noreferrer')}>
+                Open QR
+              </button>
             </div>
           </div>
         </div>

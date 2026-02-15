@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Login from './pages/Login';
+import SetupPassword from './pages/SetupPassword';
 import FaceAuth from './pages/FaceAuth';
 import ForgotPassword from './pages/ForgotPassword';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminDatabase from './pages/AdminDatabase';
 import ManagerDashboard from './pages/ManagerDashboard';
 import EmployeeDashboard from './pages/EmployeeDashboard';
-import FaceDetection from './pages/FaceDetection';
 import AttendanceManagement from './pages/AttendanceManagement';
 import SalaryTracker from './pages/SalaryTracker';
 import ViewSalaryRecord from './pages/ViewSalaryRecord';
@@ -17,7 +18,7 @@ import ProfileSetting from './pages/ProfileSetting';
 import AttendanceScanner from './pages/AttendanceScanner';
 import QRCodeGenerator from './pages/QRCodeGenerator';
 import ProtectedRoute from './components/ProtectedRoute';
-import { verifySession, logoutUser } from './utils/authService';
+import { verifySession, logoutUser, logAudit } from './utils/authService';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -48,7 +49,15 @@ function App() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Log logout action
+    if (user) {
+      await logAudit('LOGOUT', { 
+        employeeId: user.employeeId,
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     // Clear all auth data
     logoutUser();
     setUser(null);
@@ -75,6 +84,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login setUser={setUser} />} />
+        <Route path="/setup-password" element={<SetupPassword />} />
         <Route path="/face-auth" element={<FaceAuth setUser={setUser} />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/qr-generator" element={<QRCodeGenerator />} />
@@ -84,6 +94,15 @@ function App() {
           element={
             <ProtectedRoute user={user} requiredRole="admin-super">
               <AdminDashboard user={user} onLogout={handleLogout} />
+            </ProtectedRoute>
+          } 
+        />
+
+        <Route 
+          path="/admin/database" 
+          element={
+            <ProtectedRoute user={user} requiredRole="admin-super">
+              <AdminDatabase user={user} onLogout={handleLogout} />
             </ProtectedRoute>
           } 
         />
@@ -115,14 +134,6 @@ function App() {
           } 
         />
         
-        <Route 
-          path="/face-detection" 
-          element={
-            <ProtectedRoute user={user} requiredRole="employee">
-              <FaceDetection user={user} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } 
-        />
 
         <Route 
           path="/attendance" 

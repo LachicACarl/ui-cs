@@ -1,13 +1,52 @@
 .navbar {
   background-color: #1e3a5f;
-  padding: 6px 24px;
+  padding: 12px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
+  font-size: 15px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: 48px;
+  height: 60px;
   overflow: visible;
+}
+
+.navbar-left {
+  flex: 0 0 auto;
+}
+
+.navbar-center {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  gap: 24px;
+  padding-left: 40px;
+}
+
+.navbar-right {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  font-weight: bold;
+  color: white;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.logo-icon {
+  font-size: 18px;
+  color: #4fb3d4;
+}
+
+.logo-text {
+  letter-spacing: 0.3px;
 }
 
 .navbar .logo {
@@ -32,39 +71,39 @@
   margin-left: auto;
 }
 
-.nav-links .dashboard-btn {
-  background-color: #f4c10f;
-  color: #000;
-  padding: 6px 18px;
-  border-radius: 5px;
-  font-weight: 600;
-  cursor: pointer;
+.dashboard-btn {
+  background: none;
+  color: #ffc107;
+  padding: 8px 0;
   border: none;
-  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 16px;
   text-decoration: none;
   display: inline-block;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
 }
 
-.nav-links .dashboard-btn:hover {
-  background-color: #ffda2c;
+.dashboard-btn:hover {
+  color: #ffda2c;
 }
 
-.nav-links .employee-link {
-  color: #f4c10f;
+.employee-link {
+  color: #ffc107;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  font-weight: 500;
-  padding: 6px 10px;
+  font-weight: 600;
+  padding: 8px 12px;
   border-radius: 4px;
   transition: all 0.2s ease;
-  font-size: 12px;
+  font-size: 15px;
 }
 
-.nav-links .employee-link:hover {
-  background-color: rgba(244, 193, 15, 0.1);
+.employee-link:hover {
+  background-color: rgba(255, 193, 7, 0.1);
 }
 
 .dropdown {
@@ -113,26 +152,25 @@
   border-color: #f4c10f;
 }
 
-.navbar .profile {
+.profile {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   cursor: pointer;
-  margin-left: 24px;
   position: relative;
 }
 
 .profile-avatar {
-  width: 30px;
-  height: 30px;
-  background-color: #8dd4e5;
+  width: 40px;
+  height: 40px;
+  background-color: #2563eb;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   color: white;
-  font-size: 12px;
+  font-size: 14px;
   flex-shrink: 0;
   overflow: hidden;
   position: relative;
@@ -147,11 +185,11 @@
 
 .profile-name {
   color: white;
-  font-weight: 500;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 15px;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   white-space: nowrap;
 }
 

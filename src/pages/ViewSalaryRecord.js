@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import './ViewSalaryRecord.css';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { apiClient } from '../utils/authService';
 
 const ViewSalaryRecord = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -18,6 +19,34 @@ const ViewSalaryRecord = ({ user, onLogout }) => {
     paymentLogs: recordData.paymentLogs || []
   });
 
+  const [loading, setLoading] = useState(false);
+
+  const fetchSalaryRecord = useCallback(async (recordId) => {
+    try {
+      setLoading(true);
+      const { data } = await apiClient.get(`/salary/records/${recordId}`);
+      setFormData({
+        employeeId: data?.employeeId || '',
+        employeeName: data?.employeeName || '',
+        position: data?.position || '',
+        department: data?.department || '',
+        baseSalary: data?.salary || '',
+        employmentStatus: data?.employmentStatus || 'Regular',
+        paymentLogs: data?.paymentLogs || []
+      });
+    } catch (error) {
+      console.error('Error fetching salary record:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [apiClient]);
+
+  useEffect(() => {
+    if (recordData.id) {
+      fetchSalaryRecord(recordData.id);
+    }
+  }, [recordData.id, fetchSalaryRecord]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -26,9 +55,25 @@ const ViewSalaryRecord = ({ user, onLogout }) => {
     }));
   };
 
-  const handleSaveChanges = () => {
-    alert('Salary record saved successfully!');
-    console.log('Saved data:', formData);
+  const handleSaveChanges = async () => {
+    try {
+      setLoading(true);
+      const { data } = await apiClient.put(`/salary/records/${recordData.id}`, {
+        baseSalary: formData.baseSalary,
+        employmentStatus: formData.employmentStatus
+      });
+      if (data?.success) {
+        alert('Salary record updated successfully!');
+        navigate(-1);
+      } else {
+        alert(data?.message || 'Failed to update salary record');
+      }
+    } catch (error) {
+      console.error('Error updating salary record:', error);
+      alert(error?.response?.data?.message || 'Failed to update salary record');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -48,6 +93,9 @@ const ViewSalaryRecord = ({ user, onLogout }) => {
           <span className="current">View Salary Record</span>
         </div>
 
+        {loading ? (
+          <div className="loading-state">Loading salary record...</div>
+        ) : (
         <div className="salary-record-card">
           <div className="record-layout">
             {/* Left side - Profile Section */}
@@ -169,6 +217,7 @@ const ViewSalaryRecord = ({ user, onLogout }) => {
             </div>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

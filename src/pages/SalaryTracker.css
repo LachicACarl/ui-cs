@@ -431,7 +431,7 @@
 .manage-btn-dropdown {
   padding: 10px 16px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #fbbc04, #f9a825);
   color: #1f2d3d;
   font-weight: 700;
@@ -463,7 +463,7 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(17, 38, 90, 0.15);
-  min-width: 180px;
+  min-width: 200px;
   z-index: 1000;
   overflow: hidden;
 }
@@ -482,7 +482,7 @@
   border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .action-dropdown-menu button:last-child {
@@ -492,6 +492,18 @@
 .action-dropdown-menu button:hover {
   background: #fbbc04;
   color: #1f2d3d;
+}
+
+.action-dropdown-menu .menu-icon {
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.action-dropdown-menu .menu-text {
+  flex: 1;
 }
 
 .empty-state {

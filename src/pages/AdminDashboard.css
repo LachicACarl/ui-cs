@@ -102,25 +102,33 @@
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  grid-template-columns: 1fr;
   gap: 30px;
-}
-
-.placeholder-message {
-  grid-column: 1 / -1;
-  padding: 60px 40px;
-  text-align: center;
-  color: #999;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border: 2px dashed #ddd;
   margin-top: 20px;
 }
 
-.placeholder-message p {
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.chart-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-card h3 {
   font-size: 16px;
-  margin: 0;
-  color: #666;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 25px 0;
+}
+
+.chart-card canvas {
+  max-height: 300px;
 }
 
 .card-header {

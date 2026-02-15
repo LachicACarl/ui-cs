@@ -8,6 +8,14 @@ const Navbar = ({ user, onLogout }) => {
   const [profileDropdownOpen, setProfileDropdownOpen] = React.useState(false);
   const [employeeDropdownOpen, setEmployeeDropdownOpen] = React.useState(false);
 
+  const getInitials = (name) => {
+    if (!name) return 'GC';
+    const parts = name.trim().split(/\s+/);
+    const first = parts[0]?.[0] || '';
+    const second = parts[1]?.[0] || parts[0]?.[1] || '';
+    return `${first}${second}`.toUpperCase();
+  };
+
   const perms = getPermissions(user?.userRole);
 
   const handleLogout = () => {
@@ -23,12 +31,17 @@ const Navbar = ({ user, onLogout }) => {
 
   return (
     <div className="navbar">
-      <Link to={getDashboardLink()} className="logo">
-        <span className="logo-icon">✦</span>
-        Gracewell NEXUS
-      </Link>
+      <div className="navbar-left">
+        <Link to={getDashboardLink()} className="logo">
+          <span className="logo-icon">✦</span>
+          <span className="logo-text">Gracewell NEXUS</span>
+        </Link>
+      </div>
       
-      <div className="nav-links">
+      <div className="navbar-center">
+      </div>
+      
+      <div className="navbar-right">
         <Link to={getDashboardLink()} className="dashboard-btn">Dashboard</Link>
         
         {user?.userRole !== 'employee' && (perms.viewAttendance || perms.manageSalary || perms.manageEmployees || perms.manageUsers) && (
@@ -55,41 +68,29 @@ const Navbar = ({ user, onLogout }) => {
             )}
           </div>
         )}
-      </div>
-      
-      <div className="profile">
-        <div className="profile-avatar">
-          {user?.profileImage ? (
-            <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
-          ) : (
-            user?.employeeName?.substring(0, 2).toUpperCase() || 'GC'
-          )}
-        </div>
-        {user?.userRole !== 'employee' && (
+        
+        <div className="profile">
+          <div className="profile-avatar">
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt="Profile" className="profile-avatar-img" />
+            ) : (
+              getInitials(user?.employeeName)
+            )}
+          </div>
           <span 
             className="profile-name"
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
           >
             {user?.employeeName || 'Guest'} <span>▼</span>
           </span>
-        )}
-        {user?.userRole === 'employee' && (
-          <span className="profile-name">
-            {user?.employeeName || 'Guest'}
-          </span>
-        )}
-        
-        {user?.userRole !== 'employee' && profileDropdownOpen && (
-          <div className="profile-dropdown">
-            <Link to="/profile">👤 Profile</Link>
-            <button onClick={handleLogout} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', textAlign: 'left', width: '100%' }}>🚪 Log Out</button>
-          </div>
-        )}
-        {user?.userRole === 'employee' && (
-          <div className="profile-dropdown" style={{ display: 'block' }}>
-            <button onClick={handleLogout} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'inherit', padding: '12px 14px', font: 'inherit', textAlign: 'left', width: '100%', margin: 0 }}>🚪 Log Out</button>
-          </div>
-        )}
+          
+          {profileDropdownOpen && (
+            <div className="profile-dropdown">
+              {user?.userRole !== 'employee' && <Link to="/profile">👤 Profile</Link>}
+              <button onClick={handleLogout} style={{ cursor: 'pointer', background: 'none', border: 'none', color: 'inherit', padding: 0, font: 'inherit', textAlign: 'left', width: '100%' }}>🚪 Log Out</button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

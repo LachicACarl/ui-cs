@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './UserManagement.css';
+import { apiClient } from '../utils/authService';
 
 const UserManagement = ({ user, onLogout }) => {
-  const [users, setUsers] = useState([
-    { id: 'A001', username: 'admin', role: 'Admin', status: 'Active', lastLogin: '2026-01-21', permissions: ['View All', 'Edit All', 'Delete', 'Manage Users'] },
-    { id: 'M001', username: 'manager', role: 'Manager', status: 'Active', lastLogin: '2026-01-20', permissions: ['View All', 'Edit Own', 'Manage Attendance'] },
-    { id: 'E001', username: 'john.smith', role: 'Employee', status: 'Active', lastLogin: '2026-01-21', permissions: ['View Own', 'Edit Own'] },
-    { id: 'E002', username: 'sarah.johnson', role: 'Employee', status: 'Active', lastLogin: '2026-01-19', permissions: ['View Own', 'Edit Own'] },
-    { id: 'E003', username: 'mike.davis', role: 'Employee', status: 'Inactive', lastLogin: '2026-01-15', permissions: ['View Own'] },
-  ]);
-
+  // RBAC: Admin-only access enforcement (per Gracewell NEXUS flow)
+  React.useEffect(() => {
+    if (!user || (user.userRole !== 'admin' && user.userRole !== 'super_admin')) {
+      window.location.href = '/';
+    }
+  }, [user]);
+  
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editFormData, setEditFormData] = useState({});
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+
+  // Fetch users from backend
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const { data } = await apiClient.get('/users');
+      setUsers(data.users || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const allPermissions = [
     'View All',
@@ -28,10 +47,21 @@ const UserManagement = ({ user, onLogout }) => {
     'Generate Reports'
   ];
 
-  const toggleUserStatus = (id) => {
-    setUsers(users.map(u => 
-      u.id === id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u
-    ));
+  const toggleUserStatus = async (id) => {
+    const user = users.find(u => u.id === id);
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+    
+    try {
+      const { data } = await apiClient.put(`/users/${id}/status`, { status: newStatus });
+      if (data?.success) {
+        await fetchUsers();
+      } else {
+        alert(data?.message || 'Failed to update user status');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert(error?.response?.data?.message || 'Failed to update user status');
+    }
   };
 
   const handleEdit = (userObj) => {
@@ -40,12 +70,22 @@ const UserManagement = ({ user, onLogout }) => {
     setShowEditModal(true);
   };
 
-  const handleSaveEdit = () => {
-    const updatedUser = { ...editFormData, permissions: selectedPermissions };
-    setUsers(users.map(u => 
-      u.id === editFormData.id ? updatedUser : u
-    ));
-    setShowEditModal(false);
+  const handleSaveEdit = async () => {
+    try {
+      const { data } = await apiClient.put(`/users/${editFormData.id}/status`, {
+        status: editFormData.status
+      });
+      if (data?.success) {
+        await fetchUsers();
+        setShowEditModal(false);
+        alert('User updated successfully');
+      } else {
+        alert(data?.message || 'Failed to update user');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert(error?.response?.data?.message || 'Failed to update user');
+    }
   };
 
   const togglePermission = (permission) => {
@@ -96,7 +136,17 @@ const UserManagement = ({ user, onLogout }) => {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {loading && (
+              <tr>
+                <td colSpan="7" className="text-center">Loading users...</td>
+              </tr>
+            )}
+            {!loading && users.length === 0 && (
+              <tr>
+                <td colSpan="7" className="text-center">No users found</td>
+              </tr>
+            )}
+            {!loading && users.map((u) => (
               <tr key={u.id}>
                 <td>{u.id}</td>
                 <td className="username">{u.username}</td>

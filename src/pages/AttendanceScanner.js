@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { QrReader } from 'react-qr-reader';
 import './AttendanceScanner.css';
-import { apiClient } from '../utils/authService';
+import { apiClient, logAudit } from '../utils/authService';
 
 const AttendanceScanner = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -160,6 +160,7 @@ const AttendanceScanner = ({ user, onLogout }) => {
       setMessage('');
       setQrFrameClass('active');
 
+      // Employee can only scan own ID (enforced per Gracewell NEXUS flow)
       if (user?.userRole === 'employee' && employeeId && employeeId !== user.employeeId) {
         setScanStatus('error');
         setMessage('⚠️ You can only submit your own attendance.');
@@ -167,6 +168,8 @@ const AttendanceScanner = ({ user, onLogout }) => {
         return;
       }
 
+      // Backend determines IN vs OUT based on existing record
+      // Source: 'scanner' (QR) or 'manual' (admin override)
       const payload = {
         employeeId: employeeId || user?.employeeId,
         method,
@@ -178,17 +181,23 @@ const AttendanceScanner = ({ user, onLogout }) => {
       const action = data?.action || 'check_in';
       const employee = data?.employee || data?.user || { id: payload.employeeId, name: payload.employeeId };
 
+      // Log attendance action
+      await logAudit(source === 'manual' ? 'MANUAL_ATTENDANCE' : 'QR_ATTENDANCE', {
+        employeeId: payload.employeeId,
+        action: action,
+        method: method,
+        source: source
+      });
+
       setScanStatus('success');
       setQrFrameClass('success');
       setLastScannedEmployee(employee);
       setMessage(action === 'check_out' ? '✅ Check-out recorded' : '✅ Check-in recorded');
 
+      // Redirect to employee dashboard after successful attendance
       setTimeout(() => {
-        setScanStatus('idle');
-        setMessage('');
-        setQrFrameClass('active');
-        setLastScannedEmployee(null);
-      }, 3000);
+        navigate('/employee');
+      }, 2000);
     } catch (error) {
       if (error?.response?.status === 401) {
         onLogout();

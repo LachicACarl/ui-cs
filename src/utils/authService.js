@@ -56,7 +56,9 @@ const request = async (method, path, body, options = {}) => {
 
 export const apiClient = {
   get: (path, options) => request('GET', path, null, options),
-  post: (path, body, options) => request('POST', path, body, options)
+  post: (path, body, options) => request('POST', path, body, options),
+  put: (path, body, options) => request('PUT', path, body, options),
+  delete: (path, options) => request('DELETE', path, null, options)
 };
 
 export const getAccessToken = () => localStorage.getItem('accessToken');
@@ -149,7 +151,9 @@ export const getPermissions = (role) => {
     super_admin: {
       viewAttendance: true,
       manageSalary: true,
+      releasePayroll: true,
       manageEmployees: true,
+      editEmployees: true,
       manageUsers: true,
       viewReports: true,
       editCompanySettings: true
@@ -157,23 +161,29 @@ export const getPermissions = (role) => {
     admin: {
       viewAttendance: true,
       manageSalary: true,
+      releasePayroll: true,
       manageEmployees: true,
+      editEmployees: true,
       manageUsers: true,
       viewReports: true,
       editCompanySettings: true
     },
     manager: {
       viewAttendance: true,
-      manageSalary: true,
+      manageSalary: false,
+      releasePayroll: false,
       manageEmployees: true,
+      editEmployees: false,
       manageUsers: false,
       viewReports: true,
       editCompanySettings: false
     },
     employee: {
       viewAttendance: true,
-      manageSalary: true,
+      manageSalary: false,
+      releasePayroll: false,
       manageEmployees: false,
+      editEmployees: false,
       manageUsers: false,
       viewReports: false,
       editCompanySettings: false
@@ -181,4 +191,18 @@ export const getPermissions = (role) => {
   };
 
   return permissions[role] || {};
+};
+
+// Log audit trail (server-side validation recommended)
+export const logAudit = async (action, details) => {
+  try {
+    await apiClient.post('/audit/log', {
+      action,
+      details,
+      timestamp: new Date().toISOString(),
+      userId: localStorage.getItem('authData') ? JSON.parse(localStorage.getItem('authData')).employeeId : null
+    });
+  } catch (error) {
+    console.warn('Audit log failed:', error);
+  }
 };

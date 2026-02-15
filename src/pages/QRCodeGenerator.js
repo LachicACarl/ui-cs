@@ -1,26 +1,70 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import './QRCodeGenerator.css';
+import { apiClient } from '../utils/authService';
 
 const QRCodeGenerator = () => {
-  const employees = [
-    { id: 'E001', name: 'John Smith', department: 'IT' },
-    { id: 'E002', name: 'Sarah Johnson', department: 'HR' },
-    { id: 'E003', name: 'Mike Davis', department: 'PM' },
-    { id: 'E004', name: 'Emily Brown', department: 'Design' },
-    { id: 'E005', name: 'Robert Wilson', department: 'Business' },
-    { id: 'E006', name: 'Lisa Anderson', department: 'IT' },
-    { id: 'E007', name: 'James Martinez', department: 'Finance' },
-    { id: 'E008', name: 'Jennifer Taylor', department: 'Marketing' },
-  ];
+  const [employees, setEmployees] = useState([]);
+  const [qrCodes, setQrCodes] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const { data } = await apiClient.get('/employees');
+      const employeesData = (data?.employees || []).map((emp) => ({
+        id: emp.employee_id,
+        name: emp.name,
+        department: emp.department,
+        qrCode: emp.qr_code,
+        qrImageUrl: emp.qr_image_url
+      }));
+      setEmployees(employeesData);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+      // Fallback to mock data if API fails
+      setEmployees([
+        { id: 'E001', name: 'John Smith', department: 'IT' },
+        { id: 'E002', name: 'Sarah Johnson', department: 'HR' },
+        { id: 'E003', name: 'Mike Davis', department: 'PM' },
+        { id: 'E004', name: 'Emily Brown', department: 'Design' },
+        { id: 'E005', name: 'Robert Wilson', department: 'Business' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateQRCode = async (employeeId) => {
+    try {
+      const { data } = await apiClient.post('/qr/generate', {
+        employeeId: employeeId,
+        type: 'attendance'
+      });
+      if (data?.qrCode) {
+        setQrCodes(prev => ({
+          ...prev,
+          [employeeId]: data.qrCode
+        }));
+      }
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
 
   const downloadQRCode = (id, name) => {
     const qrElement = document.getElementById(`qr-${id}`);
-    const canvas = qrElement.querySelector('canvas');
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `${id}-${name}.png`;
-    link.click();
+    if (qrElement) {
+      const canvas = qrElement.querySelector('canvas');
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = `${id}-${name}.png`;
+      link.click();
+    }
   };
 
   const printAllQRCodes = () => {
@@ -31,8 +75,8 @@ const QRCodeGenerator = () => {
     <div className="qr-generator-container">
       <div className="qr-header">
         <h1>🔗 QR Code Generator</h1>
-        <p>Print or display these QR codes for attendance scanner testing</p>
-        <button className="print-btn" onClick={printAllQRCodes}>
+        <p>Generate and manage employee QR codes for attendance scanner</p>
+        <button className="print-btn" onClick={() => window.print()}>
           🖨️ Print All QR Codes
         </button>
       </div>
@@ -40,47 +84,46 @@ const QRCodeGenerator = () => {
       <div className="qr-info-box">
         <h3>📌 How to Use:</h3>
         <ul>
-          <li><strong>For Attendance Scanner:</strong> Use Employee QR Codes (E001-E008) below</li>
-          <li><strong>For Login Testing:</strong> Use these credentials:
-            <ul>
-              <li>Admin: <code>admin</code> / <code>password123</code></li>
-              <li>Manager: <code>manager</code> / <code>password123</code></li>
-              <li>Employee: <code>employee</code> / <code>password123</code></li>
-            </ul>
-          </li>
+          <li><strong>For Attendance Scanner:</strong> Generate QR codes for employees</li>
+          <li><strong>QR Codes are valid for:</strong> Attendance scanning and authentication</li>
+          <li><strong>Each code contains:</strong> Employee ID and timestamp data</li>
         </ul>
       </div>
 
       <div className="qr-section-title">
-        <h2>👥 Employee QR Codes (Attendance Scanner)</h2>
-        <p>Individual employee attendance IDs for scanning</p>
+        <h2>👥 Employee QR Codes</h2>
+        <p>Generate and download QR codes for attendance tracking</p>
       </div>
 
-      <div className="qr-grid">
-        {employees.map((emp) => (
-          <div key={emp.id} className="qr-card">
-            <div className="qr-code-wrapper" id={`qr-${emp.id}`}>
-              <QRCodeCanvas 
-                value={emp.id} 
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
+      {loading ? (
+        <div className="loading-state">Loading employees...</div>
+      ) : (
+        <div className="qr-grid">
+          {employees.map((emp) => (
+            <div key={emp.id} className="qr-card">
+              <div className="qr-code-wrapper" id={`qr-${emp.id}`}>
+                <QRCodeCanvas 
+                  value={emp.qrCode || emp.id} 
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              <div className="qr-info">
+                <h3>{emp.name}</h3>
+                <p className="emp-id">{emp.id}</p>
+                <p className="emp-dept">{emp.department || 'N/A'}</p>
+                <button 
+                  className="download-btn"
+                  onClick={() => downloadQRCode(emp.id, emp.name)}
+                >
+                  ⬇️ Download
+                </button>
+              </div>
             </div>
-            <div className="qr-info">
-              <h3>{emp.name}</h3>
-              <p className="emp-id">{emp.id}</p>
-              <p className="emp-dept">{emp.department}</p>
-              <button 
-                className="download-btn"
-                onClick={() => downloadQRCode(emp.id, emp.name)}
-              >
-                ⬇️ Download
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="qr-instructions">
         <h3>📋 Instructions:</h3>

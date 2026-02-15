@@ -1,67 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './SalaryTracker.css';
-
-const seededRecords = [
-  {
-    employeeId: 'EMP001',
-    employeeName: 'Robert Johnson',
-    trips: 1,
-    salary: 45000,
-    status: 'Released',
-    releaseDate: '2025-10-25',
-    period: '2025-10-31',
-    position: 'Driver',
-    department: 'Operations'
-  },
-  {
-    employeeId: 'EMP002',
-    employeeName: 'Sarah Williams',
-    trips: 1,
-    salary: 42000,
-    status: 'Released',
-    releaseDate: '2025-10-25',
-    period: '2025-10-31',
-    position: 'Coordinator',
-    department: 'Operations'
-  },
-  {
-    employeeId: 'EMP003',
-    employeeName: 'Michael Brown',
-    trips: 1,
-    salary: 46000,
-    status: 'Released',
-    releaseDate: '2026-01-19',
-    period: '2026-01-19',
-    position: 'Supervisor',
-    department: 'Logistics'
-  },
-  {
-    employeeId: 'EMP004',
-    employeeName: 'David Miller',
-    trips: 1,
-    salary: 44000,
-    status: 'Claimed',
-    releaseDate: '2026-01-19',
-    claimedDate: '2026-01-19',
-    period: '2026-01-19',
-    position: 'Operations Lead',
-    department: 'Operations'
-  },
-  {
-    employeeId: 'EMP005',
-    employeeName: 'Lauren Adams',
-    trips: 0,
-    salary: 38000,
-    status: 'Pending',
-    period: '2026-01-23',
-    position: 'Dispatcher',
-    department: 'Operations'
-  }
-];
+import { logAudit, apiClient } from '../utils/authService';
 
 const SalaryTracker = ({ user, onLogout }) => {
-  const [records, setRecords] = useState(seededRecords);
+  // RBAC per Gracewell NEXUS: Admin can add/release. Manager views only. Employee views own.
+  const canManageSalary = user?.userRole === 'admin' || user?.userRole === 'super_admin';
+  const canViewOwnOnly = user?.userRole === 'employee';
+  const [records, setRecords] = useState([]);
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -79,6 +27,54 @@ const SalaryTracker = ({ user, onLogout }) => {
   const [receiptRecord, setReceiptRecord] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  // Fetch salary records from backend
+  useEffect(() => {
+    fetchSalaryRecords();
+    fetchEmployees();
+  }, [statusFilter, startDate, endDate]);
+
+  const fetchEmployees = async () => {
+    try {
+      const { data } = await apiClient.get('/employees');
+      setEmployees(data?.employees || []);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
+
+  const fetchSalaryRecords = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter && statusFilter !== 'All') params.append('status', statusFilter);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const { data } = await apiClient.get(`/salary/records?${params.toString()}`);
+      
+      // Transform backend data to frontend format
+      const transformed = (data.records || []).map(r => ({
+        id: r.id,
+        employeeId: r.employee_id,
+        employeeName: r.name,
+        trips: r.trips || 0,
+        salary: r.amount,
+        status: r.status,
+        releaseDate: r.released_at ? r.released_at.split('T')[0] : null,
+        claimedDate: r.claimed_at ? r.claimed_at.split('T')[0] : null,
+        period: r.period_end,
+        position: r.position || 'Employee',
+        department: r.department || 'N/A'
+      }));
+      
+      setRecords(transformed);
+    } catch (error) {
+      console.error('Failed to fetch salary records:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totals = useMemo(() => {
     const totalPayroll = records.reduce((sum, r) => sum + (parseFloat(r.salary) || 0), 0);
@@ -125,6 +121,12 @@ const SalaryTracker = ({ user, onLogout }) => {
     setCurrentPage(1);
   }, [search, statusFilter, startDate, endDate]);
 
+  React.useEffect(() => {
+    const handleClickOutside = () => setActionDropdownOpen(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const payrollPeriod = startDate && endDate
     ? `${new Date(startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} - ${new Date(endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
     : 'October 16-31, 2025';
@@ -159,27 +161,93 @@ const SalaryTracker = ({ user, onLogout }) => {
     setSelectedRecord((prev) => prev ? { ...prev, status: newStatus } : prev);
   };
 
-  const releasePayment = (record) => {
-    setRecords((prev) => prev.map((r) => r.employeeId === record.employeeId ? {
-      ...r,
-      status: 'Released',
-      releaseDate: new Date().toISOString().split('T')[0]
-    } : r));
+  const releasePayment = async (record) => {
+    try {
+      const { data } = await apiClient.put(`/salary/release/${record.id}`);
+      if (data?.success) {
+        await fetchSalaryRecords();
+        await logAudit('SALARY_RELEASE', {
+          employeeId: record.employeeId,
+          employeeName: record.employeeName,
+          amount: record.salary,
+          period: record.period
+        });
+      } else {
+        alert(data?.message || 'Failed to release payment');
+      }
+    } catch (error) {
+      console.error('Release error:', error);
+      alert(error?.response?.data?.message || 'Failed to release payment');
+    }
   };
 
-  const markClaimed = (record) => {
-    setRecords((prev) => prev.map((r) => r.employeeId === record.employeeId ? {
-      ...r,
-      status: 'Claimed',
-      claimedDate: new Date().toISOString().split('T')[0]
-    } : r));
+  const markClaimed = async (record) => {
+    try {
+      const { data } = await apiClient.put(`/salary/claim/${record.id}`);
+      if (data?.success) {
+        await fetchSalaryRecords();
+        await logAudit('SALARY_CLAIMED', {
+          employeeId: record.employeeId,
+          employeeName: record.employeeName,
+          amount: record.salary
+        });
+      } else {
+        alert(data?.message || 'Failed to claim salary');
+      }
+    } catch (error) {
+      console.error('Claim error:', error);
+      alert(error?.response?.data?.message || 'Failed to claim salary');
+    }
   };
 
-  const exportReport = (format, range = reportRange) => {
-    const filename = `salary_${range}.${format.toLowerCase()}`;
-    console.log(`Exporting ${range} salary as ${format}: ${filename}`);
-    alert(`Exporting ${range} salary records as ${format}...`);
-    setExportDropdownOpen(false);
+  const exportReport = async (format, range = reportRange) => {
+    if (format !== 'CSV') {
+      alert(`${format} export coming soon!`);
+      setExportDropdownOpen(false);
+      return;
+    }
+
+    const today = new Date();
+    const end = endDate ? new Date(endDate) : today;
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(today.getFullYear(), today.getMonth(), today.getDate() - (range === 'month' ? 30 : 7));
+
+    const startIso = start.toISOString().split('T')[0];
+    const endIso = end.toISOString().split('T')[0];
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:4000'}/reports/salary`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({ startDate: startIso, endDate: endIso, format: 'csv' })
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Export failed');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `salary_${range}_${startIso}_${endIso}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      await logAudit('SALARY_EXPORT', { format, range, recordCount: filteredRecords.length });
+    } catch (error) {
+      console.error('Export error:', error);
+      alert(error?.message || 'Failed to export report');
+    } finally {
+      setExportDropdownOpen(false);
+    }
   };
 
   const formatDisplayDate = (value) => {
@@ -193,7 +261,7 @@ const SalaryTracker = ({ user, onLogout }) => {
     setAddError('');
   };
 
-  const handleAddRecord = () => {
+  const handleAddRecord = async () => {
     const employeeId = addData.employeeId.trim();
     const employeeName = addData.employeeName.trim();
     const period = addData.period.trim();
@@ -205,32 +273,57 @@ const SalaryTracker = ({ user, onLogout }) => {
       return;
     }
 
-    const duplicate = records.some((r) => r.employeeId.toLowerCase() === employeeId.toLowerCase() && (r.period || '').toLowerCase() === period.toLowerCase());
-    if (duplicate) {
-      setAddError('A record for this employee and period already exists.');
-      return;
+    try {
+      const { data } = await apiClient.post('/salary/add', {
+        employeeId,
+        periodStart: period,
+        periodEnd: period,
+        amount: salaryNum,
+        trips: Number.isNaN(tripsNum) ? 0 : tripsNum
+      });
+
+      if (data?.success) {
+        await fetchSalaryRecords();
+        setShowAddModal(false);
+        resetAddForm();
+      } else {
+        setAddError(data?.message || 'Failed to add salary record');
+      }
+    } catch (error) {
+      console.error('Add salary error:', error);
+      setAddError(error?.response?.data?.message || 'Failed to add salary record');
     }
-
-    const newRecord = {
-      employeeId,
-      employeeName,
-      period,
-      salary: salaryNum,
-      trips: Number.isNaN(tripsNum) ? 0 : tripsNum,
-      status: 'Pending',
-      position: '',
-      department: '',
-      releaseDate: '',
-      claimedDate: ''
-    };
-
-    setRecords((prev) => [newRecord, ...prev]);
-    setShowAddModal(false);
-    resetAddForm();
   };
 
   const isAdmin = user?.userRole === 'admin' || user?.userRole === 'super_admin';
   const isManager = user?.userRole === 'manager';
+
+  const downloadReceipt = async (record) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/salary/receipt/${record.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `salary_receipt_${record.employeeId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Failed to download receipt');
+      }
+    } catch (error) {
+      console.error('Receipt download error:', error);
+      alert('Failed to download receipt');
+    }
+  };
 
   return (
     <div className="salary-page">
@@ -423,7 +516,7 @@ const SalaryTracker = ({ user, onLogout }) => {
                 </tr>
               )}
               {paginatedRecords.map((record) => (
-                <tr key={`${record.employeeId}-${record.period || record.releaseDate || 'row'}`}>
+                <tr key={record.id || `${record.employeeId}-${record.period || record.releaseDate || 'row'}`}>
                   <td>{record.employeeId}</td>
                   <td>{record.employeeName}</td>
                   <td>{record.trips}</td>
@@ -437,57 +530,70 @@ const SalaryTracker = ({ user, onLogout }) => {
                   <td>{formatDisplayDate(record.claimedDate)}</td>
                   <td>
                     {isAdmin && (
-                      <div className="action-dropdown-wrapper">
+                      <div className="action-dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
                         <button 
                           className="manage-btn-dropdown"
-                          onClick={() => setActionDropdownOpen(actionDropdownOpen === record.employeeId ? null : record.employeeId)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActionDropdownOpen(actionDropdownOpen === record.id ? null : record.id);
+                          }}
                         >
                           Manage <span>▼</span>
                         </button>
-                        {actionDropdownOpen === record.employeeId && (
-                          <div className="action-dropdown-menu">
+                        {actionDropdownOpen === record.id && (
+                          <div className="action-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                             <button onClick={() => { handleManageClick(record); setActionDropdownOpen(null); }}>
-                              ⚙️ Edit Details
+                              <span className="menu-icon">⚙️</span>
+                              <span className="menu-text">Edit Details</span>
                             </button>
                             {record.status !== 'Released' && (
                               <button onClick={() => { releasePayment(record); setActionDropdownOpen(null); }}>
-                                ✓ Release Payment
+                                <span className="menu-icon">✓</span>
+                                <span className="menu-text">Release Payment</span>
                               </button>
                             )}
                             {record.status === 'Released' && (
                               <button onClick={() => { markClaimed(record); setActionDropdownOpen(null); }}>
-                                ✓ Mark Claimed
+                                <span className="menu-icon">✓</span>
+                                <span className="menu-text">Mark Claimed</span>
                               </button>
                             )}
                             <button onClick={() => { setReceiptRecord(record); setShowReceiptModal(true); setActionDropdownOpen(null); }}>
-                              📄 View Receipt
+                              <span className="menu-icon">📄</span>
+                              <span className="menu-text">View Receipt</span>
                             </button>
                           </div>
                         )}
                       </div>
                     )}
                     {isManager && (
-                      <div className="action-dropdown-wrapper">
+                      <div className="action-dropdown-wrapper" onClick={(e) => e.stopPropagation()}>
                         <button 
                           className="manage-btn-dropdown"
-                          onClick={() => setActionDropdownOpen(actionDropdownOpen === record.employeeId ? null : record.employeeId)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActionDropdownOpen(actionDropdownOpen === record.id ? null : record.id);
+                          }}
                         >
                           Manage <span>▼</span>
                         </button>
-                        {actionDropdownOpen === record.employeeId && (
-                          <div className="action-dropdown-menu">
+                        {actionDropdownOpen === record.id && (
+                          <div className="action-dropdown-menu" onClick={(e) => e.stopPropagation()}>
                             {record.status !== 'Released' && (
                               <button onClick={() => { releasePayment(record); setActionDropdownOpen(null); }}>
-                                ✓ Release Payment
+                                <span className="menu-icon">✓</span>
+                                <span className="menu-text">Release Payment</span>
                               </button>
                             )}
                             {record.status === 'Released' && (
                               <button onClick={() => { markClaimed(record); setActionDropdownOpen(null); }}>
-                                ✓ Mark Claimed
+                                <span className="menu-icon">✓</span>
+                                <span className="menu-text">Mark Claimed</span>
                               </button>
                             )}
                             <button onClick={() => { setReceiptRecord(record); setShowReceiptModal(true); setActionDropdownOpen(null); }}>
-                              📄 View Receipt
+                              <span className="menu-icon">📄</span>
+                              <span className="menu-text">View Receipt</span>
                             </button>
                           </div>
                         )}
@@ -589,13 +695,25 @@ const SalaryTracker = ({ user, onLogout }) => {
               <p className="modal-description">Add a new salary record for a pay period. Existing records cannot be edited to prevent disputes.</p>
               {addError && <div className="error-text">{addError}</div>}
               <div className="form-group">
-                <label>Employee ID</label>
-                <input
-                  type="text"
-                  placeholder="emp007"
+                <label>Select Employee</label>
+                <select
                   value={addData.employeeId}
-                  onChange={(e) => setAddData({ ...addData, employeeId: e.target.value })}
-                />
+                  onChange={(e) => {
+                    const selectedEmp = employees.find(emp => emp.employee_id === e.target.value);
+                    setAddData({
+                      ...addData,
+                      employeeId: e.target.value,
+                      employeeName: selectedEmp?.name || ''
+                    });
+                  }}
+                >
+                  <option value="">-- Select an Employee --</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.employee_id}>
+                      {emp.employee_id} - {emp.name}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="form-group">
                 <label>Employee Name</label>
@@ -603,7 +721,7 @@ const SalaryTracker = ({ user, onLogout }) => {
                   type="text"
                   placeholder="John Doe"
                   value={addData.employeeName}
-                  onChange={(e) => setAddData({ ...addData, employeeName: e.target.value })}
+                  disabled
                 />
               </div>
               <div className="form-group">
@@ -747,7 +865,7 @@ const SalaryTracker = ({ user, onLogout }) => {
 
             <div className="receipt-actions">
               <button className="btn-receipt-close" onClick={() => setShowReceiptModal(false)}>Close</button>
-              <button className="btn-receipt-download" onClick={() => alert('PDF download coming soon')}>Download PDF</button>
+              <button className="btn-receipt-download" onClick={() => downloadReceipt(receiptRecord)}>Download PDF</button>
             </div>
           </div>
         </div>
@@ -820,7 +938,7 @@ const SalaryTracker = ({ user, onLogout }) => {
 
             <div className="receipt-actions">
               <button className="btn-receipt-close" onClick={() => setShowReceiptModal(false)}>Close</button>
-              <button className="btn-receipt-download" onClick={() => alert('PDF download coming soon')}>Download PDF</button>
+              <button className="btn-receipt-download" onClick={() => downloadReceipt(receiptRecord)}>Download PDF</button>
             </div>
           </div>
         </div>

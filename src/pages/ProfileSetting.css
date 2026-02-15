@@ -33,52 +33,54 @@
   overflow: hidden;
 }
 
-/* Profile Picture Section */
-.profile-picture-section {
+/* Profile Picture Section - Compact */
+.profile-picture-section-compact {
   display: flex;
   align-items: center;
-  gap: 30px;
-  padding: 40px;
-  background: linear-gradient(135deg, #f5f5f5, #ffffff);
+  gap: 15px;
+  padding: 20px 40px;
+  background: #ffffff;
   border-bottom: 1px solid #e0e0e0;
 }
 
-.profile-avatar-large {
-  width: 120px;
-  height: 120px;
+.profile-avatar-small {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background-color: #f4c10f;
   color: #1e3a5f;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 48px;
+  font-size: 16px;
   font-weight: bold;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(244, 193, 15, 0.3);
+  box-shadow: 0 2px 6px rgba(244, 193, 15, 0.2);
+  overflow: hidden;
 }
 
-.avatar-info {
-  flex: 1;
+.profile-image-small {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.employee-name {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 600;
+.btn-change-photo-compact {
+  background-color: #f4c10f;
   color: #1e3a5f;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+  transition: all 0.3s ease;
 }
 
-.employee-id {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #666666;
-}
-
-.employee-position {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #999999;
+.btn-change-photo-compact:hover {
+  background-color: #e8b30f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(244, 193, 15, 0.2);
 }
 
 /* Profile Section */
@@ -599,4 +601,58 @@
   margin: 0;
   font-size: 14px;
   color: #666666;
+}
+
+/* Email Confirmation Modal */
+.email-confirm-modal {
+  max-width: 450px;
+  text-align: center;
+}
+
+.email-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.email-confirm-modal h2 {
+  font-size: 24px;
+  color: #1e3a5f;
+  margin: 0 0 15px 0;
+  font-weight: 600;
+}
+
+.email-confirm-modal p {
+  font-size: 14px;
+  color: #666666;
+  margin: 0 0 25px 0;
+  line-height: 1.6;
+}
+
+.email-confirm-modal strong {
+  color: #1e3a5f;
+  font-weight: 600;
+}
+
+.btn-gotit {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.resend-text {
+  font-size: 13px;
+  color: #999999;
+  margin: 0;
+}
+
+.resend-link {
+  color: #4285f4;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.resend-link:hover {
+  text-decoration: underline;
 }

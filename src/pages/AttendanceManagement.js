@@ -1,9 +1,11 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './AttendanceManagement.css';
+import { apiClient } from '../utils/authService';
 
 const AttendanceManagement = ({ user, onLogout }) => {
   const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('all');
   const [startDate, setStartDate] = useState('');
@@ -13,6 +15,46 @@ const AttendanceManagement = ({ user, onLogout }) => {
   const [editCheckIn, setEditCheckIn] = useState('');
   const [editCheckOut, setEditCheckOut] = useState('');
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
+
+  // Fetch attendance records from backend
+  useEffect(() => {
+    fetchAttendanceRecords();
+  }, [department, startDate, endDate]);
+
+  const fetchAttendanceRecords = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (department && department !== 'all') params.append('department', department);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+
+      const { data } = await apiClient.get(`/attendance/records?${params.toString()}`);
+      
+      // Transform backend data to frontend format
+      const transformed = (data.records || []).map(r => ({
+        id: r.id,
+        employeeId: r.employee_id,
+        name: r.name,
+        department: r.department || 'N/A',
+        date: r.date,
+        checkIn: r.check_in ? new Date(r.check_in).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-',
+        checkOut: r.check_out ? new Date(r.check_out).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '-',
+        status: r.check_in ? 'Present' : 'Absent',
+        approvalStatus: r.approval_status || 'Pending',
+        correctedTime: '-',
+        correctionStatus: 'N/A',
+        issueStatus: 'Open',
+        issueNote: ''
+      }));
+      
+      setRecords(transformed);
+    } catch (error) {
+      console.error('Failed to fetch attendance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totals = useMemo(() => {
     const totalEmployees = records.length;
@@ -28,7 +70,7 @@ const AttendanceManagement = ({ user, onLogout }) => {
         rec.name.toLowerCase().includes(term) ||
         rec.department.toLowerCase().includes(term) ||
         rec.status.toLowerCase().includes(term) ||
-        rec.id.toLowerCase().includes(term);
+        String(rec.id).toLowerCase().includes(term);
 
       const deptOk = department === 'all' || rec.department === department;
 
@@ -47,19 +89,38 @@ const AttendanceManagement = ({ user, onLogout }) => {
     setEditModalOpen(true);
   };
 
-  const saveEdits = () => {
-    setRecords((prev) => prev.map((r) => r.id === selectedRecord.id ? {
-      ...r,
-      checkIn: editCheckIn || '-',
-      checkOut: editCheckOut || '-',
-      correctionStatus: 'Approved'
-    } : r));
-    setEditModalOpen(false);
-    setSelectedRecord(null);
+  const saveEdits = async () => {
+    try {
+      const { data } = await apiClient.put(`/attendance/records/${selectedRecord.id}`, {
+        check_in: editCheckIn || selectedRecord.checkIn,
+        check_out: editCheckOut || selectedRecord.checkOut
+      });
+
+      if (data?.success) {
+        await fetchAttendanceRecords();
+        setEditModalOpen(false);
+        setSelectedRecord(null);
+      } else {
+        alert(data?.message || 'Failed to update attendance record');
+      }
+    } catch (error) {
+      console.error('Update error:', error);
+      alert(error?.response?.data?.message || 'Failed to update attendance record');
+    }
   };
 
-  const setCorrectionStatus = (rec, status) => {
-    setRecords((prev) => prev.map((r) => r.id === rec.id ? { ...r, correctionStatus: status } : r));
+  const setCorrectionStatus = async (rec, status) => {
+    try {
+      const { data } = await apiClient.put(`/attendance/records/${rec.id}/approval`, { status });
+      if (data?.success) {
+        setRecords((prev) => prev.map((r) => r.id === rec.id ? { ...r, approvalStatus: status } : r));
+      } else {
+        alert(data?.message || 'Failed to update approval status');
+      }
+    } catch (error) {
+      console.error('Approval update error:', error);
+      alert(error?.response?.data?.message || 'Failed to update approval status');
+    }
   };
 
   const setIssueStatus = (rec, status) => {
@@ -82,9 +143,26 @@ const AttendanceManagement = ({ user, onLogout }) => {
   };
 
   const exportReport = (format) => {
-    const filename = `attendance_export.${format.toLowerCase()}`;
-    console.log(`Exporting attendance as ${format}: ${filename}`);
-    alert(`Exporting attendance as ${format} format...`);
+    const filename = `attendance_export_${new Date().toISOString().split('T')[0]}.${format.toLowerCase()}`;
+    
+    if (format === 'CSV') {
+      const headers = ['Employee ID', 'Name', 'Department', 'Date', 'Check In', 'Check Out', 'Status'];
+      const rows = filteredRecords.map(r => [
+        r.employeeId, r.name, r.department, r.date, r.checkIn, r.checkOut, r.status
+      ]);
+      
+      const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } else {
+      alert(`${format} export coming soon! Use CSV for now.`);
+    }
+    
     setExportDropdownOpen(false);
   };
 
@@ -172,12 +250,17 @@ const AttendanceManagement = ({ user, onLogout }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.length === 0 && (
+              {loading && (
                 <tr>
-                  <td colSpan="9" className="empty-state">No attendance records yet. Connect to the database to load data.</td>
+                  <td colSpan="9" className="empty-state">Loading attendance records...</td>
                 </tr>
               )}
-              {filteredRecords.map((record) => (
+              {!loading && filteredRecords.length === 0 && (
+                <tr>
+                  <td colSpan="9" className="empty-state">No attendance records found. Adjust filters or check date range.</td>
+                </tr>
+              )}
+              {!loading && filteredRecords.map((record) => (
                 <tr key={`${record.id}-${record.date}`}>
                   <td>{record.name}</td>
                   <td>{record.department}</td>
@@ -197,10 +280,19 @@ const AttendanceManagement = ({ user, onLogout }) => {
                   </td>
                   <td>
                     <div className="action-buttons">
-                      <button className="approve" onClick={() => setCorrectionStatus(record, 'Approved')}>Approve</button>
-                      <button className="deny" onClick={() => setCorrectionStatus(record, 'Denied')}>Deny</button>
-                      <button className="resolve" onClick={() => setIssueStatus(record, record.issueStatus === 'Resolved' ? 'Open' : 'Resolved')}>
-                        {record.issueStatus === 'Resolved' ? 'Reopen' : 'Resolve'}
+                      <button
+                        className="approve"
+                        onClick={() => setCorrectionStatus(record, 'Approved')}
+                        disabled={record.approvalStatus === 'Approved'}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="deny"
+                        onClick={() => setCorrectionStatus(record, 'Denied')}
+                        disabled={record.approvalStatus === 'Denied'}
+                      >
+                        Deny
                       </button>
                       <button className="edit" onClick={() => openEditModal(record)}>Edit</button>
                     </div>

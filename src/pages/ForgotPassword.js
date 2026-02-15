@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './ForgotPassword.css';
+import { apiClient } from '../utils/authService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -10,9 +11,10 @@ const ForgotPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleEmailSubmit = (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
       setError('Please enter your email address');
@@ -26,10 +28,17 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Simulate sending verification code
-    setMessage(`Verification code sent to ${email}`);
-    setError('');
-    setStep(2);
+    setLoading(true);
+    try {
+      const { data } = await apiClient.post('/auth/forgot-password', { email });
+      setMessage(data.message || `Verification code sent to ${email}`);
+      setError('');
+      setStep(2);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to send verification code');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerificationSubmit = (e) => {
@@ -39,35 +48,25 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Simulate verification (accept any 6-digit code or "123456")
-    if (verificationCode.length === 6) {
-      setMessage('Verification successful! Now set your new password.');
-      setError('');
-      setStep(3);
-    } else {
-      setError('Invalid verification code. Please try again.');
+    if (verificationCode.length !== 6) {
+      setError('Verification code must be 6 digits');
+      return;
     }
+
+    setMessage('Verification successful! Now set your new password.');
+    setError('');
+    setStep(3);
   };
 
-  const handlePasswordReset = (e) => {
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
     if (!newPassword || !confirmPassword) {
       setError('Please fill in all password fields');
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return;
-    }
-
-    if (!/[A-Z]/.test(newPassword)) {
-      setError('Password must contain at least one uppercase letter');
-      return;
-    }
-
-    if (!/[0-9]/.test(newPassword)) {
-      setError('Password must contain at least one digit');
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
       return;
     }
 
@@ -76,11 +75,25 @@ const ForgotPassword = () => {
       return;
     }
 
-    setMessage('Password reset successfully! Redirecting to login...');
-    setError('');
-    setTimeout(() => {
-      navigate('/login');
-    }, 2000);
+    setLoading(true);
+    try {
+      const { data } = await apiClient.post('/auth/reset-password', {
+        email,
+        verificationCode,
+        newPassword,
+        confirmPassword
+      });
+
+      setMessage('Password reset successfully! Redirecting to login...');
+      setError('');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -107,8 +120,8 @@ const ForgotPassword = () => {
             </div>
             {error && <div className="error-message">{error}</div>}
             {message && <div className="success-message">{message}</div>}
-            <button type="submit" className="btn-submit">
-              Send Verification Code
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? 'Sending...' : 'Send Verification Code'}
             </button>
           </form>
         )}
@@ -134,8 +147,8 @@ const ForgotPassword = () => {
             </div>
             {error && <div className="error-message">{error}</div>}
             {message && <div className="success-message">{message}</div>}
-            <button type="submit" className="btn-submit">
-              Verify Code
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? 'Verifying...' : 'Verify Code'}
             </button>
             <button
               type="button"
@@ -180,8 +193,8 @@ const ForgotPassword = () => {
             {error && <div className="error-message">{error}</div>}
             {message && <div className="success-message">{message}</div>}
 
-            <button type="submit" className="btn-submit">
-              Reset Password
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? 'Resetting...' : 'Reset Password'}
             </button>
             <button
               type="button"
